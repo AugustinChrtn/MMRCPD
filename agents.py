@@ -4,8 +4,6 @@ from scipy.special import gammaln, psi
 # ---------------------------------------------------------------------------- #
 # Infinite horizon agents
 # ---------------------------------------------------------------------------- #
-
-
 class Basic_MB:
 
     def __init__(self, environment, gamma=0.95):

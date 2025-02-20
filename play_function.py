@@ -103,49 +103,6 @@ def play_with_logs(environment, agent, trials=100, max_step=30):
         nb_models.append(np.sum(agent.nb_models))
     return reward_per_episode, nb_models
 
-
-# from variables import env_subparams, env_subclasses, agent_params
-
-
-# def play(environment,
-#          agent,
-#          trials=100,
-#          max_step=30):
-#     """Simulate a reinforcement learning agent on an environment in a
-#     sequential task.
-
-#     Parameters
-#     ----------
-#     environment : _type_
-#         Any class from the envs.py file.
-#     agent : _type_
-#         Any agent from the agents.py or task_change_agents.py files.
-#     trials : int, optional
-#         Number of trials to run.
-#     max_step : int, optional
-#         Maximal steps per trial.
-#     Returns
-#     -------
-#     list
-#         Accumulated reward over all trials.
-#     """
-#     reward_per_episode = []
-#     for _ in range(trials):
-#         cumulative_reward, step, game_over = 0, 0, False
-#         while not game_over:
-#             old_state = environment.agent_state
-#             action = agent.choose_action(old_state)
-#             reward, new_state = environment.make_step(action)
-#             agent.learn(old_state, reward, new_state, action)
-#             cumulative_reward += reward
-#             step += 1
-#             if step == max_step:
-#                 game_over = True
-#                 environment.new_episode()
-#         reward_per_episode.append(cumulative_reward)
-#     return reward_per_episode
-
-
 def get_simulation_to_do(agent_to_test,
                          env_name,
                          nb_tests,
@@ -248,4 +205,68 @@ def main_function(agent_to_test,
     
     np.save('results/parameters'+title+'.npy', parameters)
     return logs, parameters
+
+
+# def play_likelihood(agent_parameter_list,
+#                     subject_choice,
+#                     env_parameter,
+#                     env_name,
+#                     agent_name,):
+
+#     environment = env_name_to_class[env_name](**env_parameter)
+#     agent = agent_name_to_class[agent_name](environment, *agent_parameter_list)
+
+#     return -play(environment,
+#                  agent, forced_choice=subject_choice)["total_likelihood"]
+
+
+# def find_best_param_minimize(x0,
+#                              bounds,
+#                              env_parameter,
+#                              env_name,
+#                              agent_name,
+#                              subject_choice):
+
+#     result = minimize(play_likelihood, x0=x0, bounds=bounds,
+#                       args=(subject_choice, env_parameter,
+#                             env_name, agent_name),
+#                       )
+
+#     return result.x, -result.fun
+
+
+# def find_best_fit(agents,
+#                   participant_choices,
+#                   env_name,
+#                   env_parameter):
+#     '''Finding the best fit with the minimize function. To improve this code, 
+#     we should use multiprocessing.'''
+#     print("Parameter fitting started")
+#     start_time = time.time()
+#     best_params = {}
+#     best_likelihood = {}
+#     for agent_name in agents:
+#         best_params[agent_name] = []
+#         best_likelihood[agent_name] = []
+#         bounds = agent_bounds[agent_name]
+#         x0 = agent_initial_guess[agent_name]
+#         for subject_choice in participant_choices:
+#             values, likelihood = find_best_param_minimize(x0,
+#                                                           bounds,
+#                                                           env_parameter,
+#                                                           env_name,
+#                                                           agent_name,
+#                                                           subject_choice)
+#             best_params[agent_name].append(list(values))
+#             best_likelihood[agent_name].append(likelihood)
+#     current_time = str(time.time())
+#     path_lik = 'data/all_likelihoods'+current_time+'.npy'
+#     path_params = 'data/all_params'+current_time+'.npy'
+#     np.save('data/all_likelihoods'+current_time+'.npy', best_likelihood)
+#     np.save('data/all_params'+current_time+'.npy', best_params)
+#     print("Computational Time for parameter fitting: "
+#           + str(time.time()-start_time) + "seconds")
+#     print("The best parameters and the corresponding likelihood were saved " +
+#           "in "+path_lik + " and " + path_params)
+#     return best_params,  best_likelihood, path_lik, path_params, current_time
 

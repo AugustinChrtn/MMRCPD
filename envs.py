@@ -209,6 +209,89 @@ class ChangingCrossEnvironment(CrossEnvironment):
         return self.rewards[self.agent_state], self.agent_state
 
 
+class PartiallyChangingCrossEnvironment():
+
+    def __init__(self, number, step_change, conds=['', '_C'], value_change=0.5):
+
+        all_paths_transi = ['Env/Transitions/Transitions_' +
+                            str(number) + typ + '.npy' for typ in conds]
+        path_rewards = 'Env/Tables/Rewards_'+str(number) + '.npy'
+        path_world = 'Env/Tables/World_'+str(number)+'.npy'
+        all_transitions = [np.load(path_transi, allow_pickle=True)
+                           for path_transi in all_paths_transi]
+        rewards = np.load(path_rewards, allow_pickle=True)
+        world = np.load(path_world, allow_pickle=True)
+        world = world.flatten()
+        self.initial_state = np.where(world == -2)[0][0]
+
+        transitions = all_transitions[0]
+
+        self.size = np.shape(transitions)[0]
+        self.number_states = self.size**2
+        self.number_actions = np.shape(transitions)[2]
+        new_shape = (self.number_states,
+                     self.number_actions,
+                     self.number_states)
+
+        self.all_transitions = []
+        for transi in all_transitions:
+            transi = transi.reshape((new_shape))
+            self.all_transitions.append(transi)
+
+        self.all_transitions = np.stack(self.all_transitions)
+        self.transitions = self.all_transitions[0]
+        self.rewards = rewards.reshape(self.number_states)
+        self.nb_changes = 0
+        self.step_change = step_change
+        self.value_change = value_change
+        self.number = number
+        self.total_counter = 0
+
+        self.states = np.arange(self.number_states)
+        self.actions = np.arange(self.number_actions)
+        self.step = 0
+        self.agent_state = self.initial_state
+
+        self.current_transis = np.zeros(self.number_states, dtype='int')
+
+        self.conds = conds
+
+    def twoD_to_oneD(self, state_2D):
+        return state_2D[0]*self.size+state_2D[1]
+
+    def one_to_twoD(self, state_1D):
+        return (state_1D//self.size, state_1D % self.size)
+
+    def new_episode(self):
+        change = (self.total_counter % self.step_change) == 0
+        if change:
+            self.nb_changes += 1
+            total_elements = self.number_states
+
+            num_changes = int(self.value_change* self.number_states)
+
+            random_indices = np.random.choice(total_elements,
+                                              num_changes,
+                                              replace=False)
+
+            self.current_transis[random_indices] += 1
+            self.current_transis %=len(self.conds)
+            for index, state in enumerate(random_indices):
+                self.transitions[state
+                                 ] = self.all_transitions[self.current_transis[index], state]
+
+
+
+        self.agent_state = self.initial_state
+
+    def make_step(self, action):
+        self.step += 1
+        self.total_counter += 1
+        transition_probas = self.transitions[self.agent_state][action]
+        self.agent_state = np.random.choice(self.states, p=transition_probas)
+        return self.rewards[self.agent_state], self.agent_state
+
+
 class SwappingCrossEnvironment(CrossEnvironment):
     def __init__(self, number, step_change, conds=['S']):
         self.step_change = step_change
@@ -429,14 +512,14 @@ class MAB:
         self.step = 0
 
         self.number_of_situations = number_arms
-        self.all_means = np.random.uniform(0,1,size=(self.number_of_situations,
-                                                 self.number_states,
-                                                 self.number_actions))
-        
+        self.all_means = np.random.uniform(0, 1, size=(self.number_of_situations,
+                                                       self.number_states,
+                                                       self.number_actions))
+
         for i in range(self.number_of_situations):
             # print(np.shape(self.all_means))
-            self.all_means[i,:,i]=1
-        
+            self.all_means[i, :, i] = 1
+
         # print(self.all_means, self.all_stds)
 
         self.current_situation = 0
@@ -458,7 +541,7 @@ class MAB:
         self.step += 1
 
         mean = self.means[self.agent_state, action]
-        reward = int(np.random.random()<mean)
+        reward = int(np.random.random() < mean)
 
         self.change_of_task()
         return reward, self.agent_state

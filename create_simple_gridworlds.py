@@ -248,12 +248,30 @@ def generate_obstructed_worlds(number=20):
 
 def generate_uncertainty():
 
+    # probas =[np.random.randint(1,100),
+    #          np.random.randint(100,1000),
+    #          np.random.randint(500,2000),
+    #          np.random.randint(100,1000),
+    #          np.random.randint(1,100),
+    #          np.random.randint(1,1000)]
+    
     probas = [0.05,
               0.05,
               0.75,
               0.05,
-              0.05,
+              0.75,
               0.05]
+
+    # probas = np.random.random(size=6)
+
+    # probas = [np.random.random(),
+    #           3*np.random.random(),
+    #           5*np.random.random(),
+    #           3*np.random.random(),
+    #           np.random.random(),
+    #           2*np.random.random()]
+
+    probas = np.array(probas)/np.sum(probas)
 
     return probas
 
@@ -477,6 +495,7 @@ def generate_transitions_cyclic(number=20):
         for row in range(size):
             for col in range(size):
                 if (row,col) in pattern.keys():
+                # if True:
                     action_permutation = cyclic_permutation([i for i in range(5)])
                     t_copy = transitions[row, col].copy()
                     for action in range(5):
@@ -496,8 +515,22 @@ def generate_reward(number=20, rewards=reward_value):
         path = 'Env/Tables/Rewards_'+str(i)+'.npy'
         np.save(path, world)
 
+def generate_optimal_policies(number=20):
+    for i in range(number):
+        world = np.load('Env/Tables/World_'+str(i)+'.npy', allow_pickle=True)
+        # rewards = np.load('Env/Tables/Rewards_'+str(i)+'.npy')
+        # transitions = np.load('Env/Transitions/Transitions_'+str(i)+'.npy')
+        # transitions_U = np.load('Env/Transitions/Transitions_'+str(i)+'_U.npy')
+        _,optimal_policy = value_iteration(i,cond='')
+        _,optimal_policy_C=value_iteration(i,cond='_C')
+        path = 'Env/Optimal_policy/World_'+str(i)+'.pdf'
+        path_U = 'Env/Optimal_policy/World_'+str(i)+'_C.pdf'
+        # print(optimal_policy)
+        plot_maze(world, path, arrows=optimal_policy)
+        plot_maze(world, path_U, arrows=optimal_policy_C)
 
-def generate_all(number=20):
+
+def generate_all(number=10):
     generate_worlds(number)
     generate_worlds_uncertain(number)
     generate_obstructed_worlds(number)
@@ -506,9 +539,37 @@ def generate_all(number=20):
     generate_transitions_obstructed(number)
     generate_transitions_cyclic(number)
     generate_reward(number)
+    generate_optimal_policies(number)
+
+
+def value_iteration(world_number, cond='', gamma=0.95, accuracy=1e-3):
+    transitions = np.load('Env/Transitions/Transitions_' +
+                str(world_number) + cond+'.npy')
+    rewards = np.load('Env/Tables/Rewards_'+str(world_number)+'.npy')
+    size = np.shape(transitions)[0]
+    nb_actions = np.shape(transitions)[2]
+
+    new_shape = (size**2, nb_actions, size**2)
+    transitions = transitions.reshape(new_shape)
+    rewards = rewards.reshape(size**2)
+    Q = np.zeros((size**2, nb_actions))
+    V = np.zeros(size**2)
+    converged = False
+    while not converged:
+        Q = np.dot(transitions, rewards+gamma*V)
+        new_V = np.max(Q, axis=1)
+        diff = np.abs(V - new_V)
+        V = new_V
+        if np.max(diff) < accuracy:
+            converged = True
+    policy = np.argmax(Q, axis=1)
+    policy = policy.reshape((size,size))
+    return V, policy
 
 
 if __name__ == "__main__":
     np.random.seed(1)
-    # generate_all(number=10)
-    # plot_one_transition()
+    generate_all(number=10)
+    plot_one_transition(world_number=4, cond='', col=3, row=3, action=0)
+    plot_one_transition(world_number=5, cond='', col=3, row=3, action=0)
+    plot_one_transition(world_number=5, cond='_C', col=3, row=3, action=0)

@@ -596,16 +596,16 @@ class MBMultiModel():
 
             # The new model will contain the last observation (hence the 1:)
             all_LL[ind] = LL_old[1:]+LL_new[1:]
-            print("LL_new",LL_new)
+            # print("LL_new",LL_new)
         model_ind, position_change = np.argwhere(all_LL == np.min(all_LL))[0]
         best_model = models_to_test[model_ind]
         position_change += 1
 
-        print("LL_old",LL_old)
-        print("all_LL", all_LL)
-        print("las_count",last_count_one_model)
-        print("position_change", position_change)
-        print("")
+        # print("LL_old",LL_old)
+        # print("all_LL", all_LL)
+        # print("las_count",last_count_one_model)
+        # print("position_change", position_change)
+        # print("")
         return best_model, position_change
 
     def find_existing_models(self, old_state, action):
