@@ -60,8 +60,8 @@ def plot_with_CI(rewards,
 
     moving_avg = np.array(moving_avg)
     moving_std = np.array(moving_std)
-    n_values = len(mean)*nb_iters*steps_per_episode/change_rate
-    moving_CI = 3.291*moving_std/np.sqrt(n_values)
+    n_values = nb_iters
+    moving_CI = 1.96*moving_std/np.sqrt(n_values)
     yerr0 = moving_avg - moving_CI
     yerr1 = moving_avg + moving_CI
 
@@ -294,7 +294,7 @@ def get_max_Q_values_and_policy(table):
 def plot_2D(table, shape):
     table = np.reshape(table, shape)
     sns.heatmap(table,
-                cmap='crest',
+                cmap='Blues',
                 cbar=False,
                 annot=table,
                 fmt='.1f',
@@ -433,6 +433,137 @@ def plot_distrib(probabilities, nb_experiences, mod, state, action, reward):
 # ---------------------------------------------------------------------------- #
 # Plots average after change
 # ---------------------------------------------------------------------------- #
+
+def plot_two(dic_of_rewards,
+             nb_steps,
+             nb_trials,
+             change_rate,
+             nb_iters,
+             title,
+             xlabel,
+             ylabel,
+             legend=True,
+             multiply=False):
+
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+    plot_avg_after_change(dic_of_rewards,
+                          nb_steps,
+                          nb_trials,
+                          change_rate,
+                          nb_iters,
+                          title=title,
+                          legend=False,
+                          xlabel=xlabel,
+                          ylabel=ylabel,
+                          ax=axs[1],
+                          save=False,
+                          multiply=multiply)
+
+    plot_avg_over_time(dic_of_rewards,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title=title,
+                       ylabel=ylabel,
+                       legend=False,
+                       ax=axs[0],
+                       save=False,
+                       multiply=multiply)
+
+    if legend:
+        handles, labels = axs[0].get_legend_handles_labels()
+        # Create a single legend below all subplots
+        odd = len(labels) % 2
+        fig.legend(handles, labels, loc="lower center",
+                   ncol=2+odd, fontsize=12)
+        bottom_adjust = 0.2+0.03*(len(labels)//2)
+        # Adjust layout to make space for the legend
+        plt.subplots_adjust(bottom=bottom_adjust)
+    else:
+        handles, labels = axs[0].get_legend_handles_labels()
+        bottom_adjust = 0.2+0.03*(len(labels)//2)
+        plt.subplots_adjust(bottom=bottom_adjust)
+
+    plt.savefig('results/'+title+'.pdf', bbox_inches='tight')
+    plt.close()
+
+
+def plot_four_models(models,
+                     models_created,
+                     models_merged,
+                     models_forgotten,
+                     nb_steps,
+                     nb_trials,
+                     change_rate,
+                     nb_iters,
+                     title):
+
+    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+
+    plot_avg_over_time(models,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title=title,
+                       legend=False,
+                       ax=axs[0, 0],
+                       save=False,
+                       ylabel='Total number of models',
+                         grid=True
+                       )
+
+    plot_avg_over_time(models_created,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title=title,
+                       ylabel='Number of models created',
+                       legend=False,
+                       ax=axs[0, 1],
+                       save=False, grid=True)
+
+    plot_avg_over_time(models_merged,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title=title,
+                       ylabel='Number of models merged',
+                       legend=False,
+                       ax=axs[1, 0],
+                       save=False, grid=True)
+
+    plot_avg_over_time(models_forgotten,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title=title,
+                       ylabel='Number of models forgotten',
+                       legend=False,
+                       ax=axs[1, 1],
+                       save=False, grid=True)
+
+    handles, labels = axs[0, 0].get_legend_handles_labels()
+    # Create a single legend below all subplots
+    odd = len(labels) % 2
+    fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
+
+    # Adjust layout to make space for the legend
+
+    bottom_adjust = 0.1+0.03*(len(labels)//2)
+    # Adjust layout to make space for the legend
+    plt.subplots_adjust(left=0.1, right=0.9,
+                        top=0.9, bottom=bottom_adjust,
+                        wspace=0.3, hspace=0.3)
+    # fig.tight_layout(pad=5.0)
+    plt.savefig('results/sum_up_models'+title+'.pdf', bbox_inches='tight')
+    plt.close()
+
+
 def plot_four(dic_of_rewards,
               dic_of_times,
               nb_steps,
@@ -443,151 +574,105 @@ def plot_four(dic_of_rewards,
               xlabel):
 
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
-    plot_reward_after_change(dic_of_rewards,
-                             nb_steps,
-                             nb_trials,
-                             change_rate,
-                             nb_iters,
-                             title=title,
-                             legend=False,
-                             xlabel=None,
-                             ax=axs[0, 1],
-                             save=False)
+    plot_avg_after_change(dic_of_rewards,
+                          nb_steps,
+                          nb_trials,
+                          change_rate,
+                          nb_iters,
+                          title=title,
+                          legend=False,
+                          xlabel=xlabel,
+                          ax=axs[0, 1],
+                          save=False)
 
-    plot_reward_per_change(dic_of_rewards,
-                           nb_steps,
-                           nb_trials,
-                           change_rate,
-                           nb_iters,
-                           title=title,
-                           legend=False,
-                           xlabel=None,
-                           ax=axs[0, 0],
-                           save=False)
-    plot_time_per_change(dic_of_times,
-                         nb_steps,
-                         nb_trials,
-                         change_rate,
-                         nb_iters,
-                         title=title,
-                         legend=False,
-                         ax=axs[1, 0],
-                         save=False)
+    plot_avg_over_time(dic_of_rewards,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title='Reward_over_time'+title,
+                       legend=False,
+                       ax=axs[0, 0],
+                       save=False)
 
-    plot_time_after_change(dic_of_times,
-                           nb_steps,
-                           nb_trials,
-                           change_rate,
-                           nb_iters,
-                           title=title,
-                           xlabel=xlabel,
-                           legend=False,
-                           ax=axs[1, 1],
-                           save=False)
+    plot_avg_over_time(dic_of_times,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title="Computational_time_over_time"+title,
+                       ylabel='Time per decision (ms)',
+                       legend=False,
+                       ax=axs[1, 0],
+                       save=False,
+                       multiply=True)
+
+    plot_avg_after_change(dic_of_times,
+                          nb_steps,
+                          nb_trials,
+                          change_rate,
+                          nb_iters,
+                          title=title,
+                          xlabel=xlabel,
+                          ylabel='Time per decision (ms)',
+                          legend=False,
+                          ax=axs[1, 1],
+                          save=False,
+                          multiply=True)
     handles, labels = axs[0, 0].get_legend_handles_labels()
-
     # Create a single legend below all subplots
-    fig.legend(handles, labels, loc="lower center", ncol=2+len(labels)%2, fontsize=12)
+    odd = len(labels) % 2
+    fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
 
     # Adjust layout to make space for the legend
-    fig.subplots_adjust(bottom=0.2)
-    plt.savefig('results/perf_sum_up'+title+'.pdf',bbox_inches='tight')
+
+    bottom_adjust = 0.1+0.03*(len(labels)//2)
+    # Adjust layout to make space for the legend
+    plt.subplots_adjust(left=0.1, right=0.9,
+                        top=0.9, bottom=bottom_adjust,
+                        wspace=0.3, hspace=0.3)
+    # fig.tight_layout(pad=5.0)
+    plt.savefig('results/perf_sum_up'+title+'.pdf', bbox_inches='tight')
     plt.close()
 
 
-# def plot_reward_after_change(dic_of_rewards,
-#                              nb_steps,
-#                              nb_trials,
-#                              change_rate,
-#                              nb_iters,
-#                              title='',
-#                              legend=True,
-#                              ax=None,
-#                              save=True):
-#     if ax is None:
-#         fig, ax = plt.subplots()
-#     all_means = {}
-#     all_stds = {}
-#     trials_each_change = int(change_rate//nb_steps)
-#     nb_values = nb_trials*nb_iters//trials_each_change
-#     for agent in dic_of_rewards.keys():
-#         all_means[agent] = []
-#         all_stds[agent] = []
-#         rewards = dic_of_rewards[agent]
-#         not_used = nb_trials % trials_each_change
-#         for j in range(trials_each_change):
-#             filter_indices = np.array([i+j for i in range(0,
-#                                                           nb_trials-not_used,
-#                                                           trials_each_change)])
-#             r_change = np.take(rewards, filter_indices, 1).flatten()
-
-#             mean = np.mean(r_change)
-#             std = np.std(r_change)
-#             all_means[agent].append(mean)
-#             all_stds[agent].append(std)
-#         array_mean = np.array(all_means[agent])
-#         array_std = np.array(all_stds[agent])
-#         array_CI = 3.291*array_std / np.sqrt(nb_values)
-#         x_axis = np.arange(1, trials_each_change+1)
-#         ax.plot(x_axis,
-#                 array_mean,
-#                 label=labels[agent],
-#                 color=all_colors[colors[agent]],
-#                 marker='.')
-#         ax.fill_between(x_axis,
-#                         array_mean-array_CI,
-#                         array_mean+array_CI,
-#                         color=all_colors[colors[agent]],
-#                         alpha=0.15)
-
-#     ax.set_ylabel("Reward")
-#     ax.set_xlabel("Number of steps after the task change")
-#     if legend:
-#         ax.legend()
-#     if title == '':
-#         title = str(time.time())
-#     if save:
-#         plt.savefig('results/reward_after_change'+title+'.pdf')
-#         plt.close()
-
-
-def plot_reward_after_change(dic_of_rewards,
-                             nb_steps,
-                             nb_trials,
-                             change_rate,
-                             nb_iters,
-                             title='',
-                             xlabel="Number of steps after the task change",
-                             ylabel='Rewards',
-                             legend=True,
-                             ax=None,
-                             save=True):
+def plot_avg_after_change(dic_of_values,
+                          nb_steps,
+                          nb_trials,
+                          change_rate,
+                          nb_iters,
+                          title='',
+                          xlabel="Number of steps after the task change",
+                          ylabel='Rewards',
+                          legend=True,
+                          ax=None,
+                          save=True,
+                          multiply=False):
     if ax is None:
         fig, ax = plt.subplots()
     all_means = {}
-    all_stds = {}
     trials_each_change = int(change_rate//nb_steps)
-    nb_values = nb_trials*nb_iters//trials_each_change
-    for agent in dic_of_rewards.keys():
-        # print(agent, np.mean(dic_of_rewards[agent]))
-        all_means[agent] = []
-        all_stds[agent] = []
-        rewards = dic_of_rewards[agent]
+    nb_values = nb_iters
+    for agent in dic_of_values.keys():
+        all_means[agent] = np.zeros((nb_iters, trials_each_change))
+        values = np.array(dic_of_values[agent])
         not_used = nb_trials % trials_each_change
         for j in range(trials_each_change):
             filter_indices = np.array([i+j for i in range(0,
                                                           nb_trials-not_used,
                                                           trials_each_change)])
-            r_change = np.take(rewards, filter_indices, 1).flatten()
 
-            mean = np.mean(r_change)
-            std = np.std(r_change)
-            all_means[agent].append(mean)
-            all_stds[agent].append(std)
+            r_change = np.take(values, filter_indices, 1)
+            if multiply:
+                r_change *= 1e3/nb_steps
+            mean = np.mean(r_change, axis=1)
+            all_means[agent][:, j] = mean
 
-        array_mean = np.array(all_means[agent])
-        array_std = np.array(all_stds[agent])
-        array_CI = 3.291*array_std / np.sqrt(nb_values)
+        array_mean = all_means[agent]
+        array_std = np.std(array_mean, axis=0)
+        array_mean = np.mean(array_mean, axis=0)
+
+        array_CI = 1.96*array_std / np.sqrt(nb_values)
         x_axis = np.arange(1, trials_each_change+1)
         ax.plot(x_axis,
                 array_mean,
@@ -607,46 +692,48 @@ def plot_reward_after_change(dic_of_rewards,
     if title == '':
         title = str(time.time())
     if save:
-        plt.savefig('results/reward_trial_after_change'+title+'.pdf')
+        plt.savefig('results/'+title+'.pdf')
         plt.close()
 
 
-def plot_reward_per_change(dic_of_rewards,
-                           nb_steps,
-                           nb_trials,
-                           change_rate,
-                           nb_iters,
-                           title='',
-                           xlabel='Number of task changes',
-                           ylabel='Rewards',
-                           legend=True,
-                           ax=None,
-                           save=True):
+def plot_avg_over_time(dic_of_values,
+                       nb_steps,
+                       nb_trials,
+                       change_rate,
+                       nb_iters,
+                       title='',
+                       xlabel='Number of task changes',
+                       ylabel='Rewards',
+                       legend=True,
+                       ax=None,
+                       save=True,
+                       multiply=False,
+                       grid=False):
     if ax is None:
         fig, ax = plt.subplots()
     all_means = {}
-    all_stds = {}
     if change_rate % nb_steps != 0:
-        print("Cannot plot reward per change, change_rate % nb_steps != 0.""")
+        print("Cannot plot, change_rate % nb_steps != 0.""")
         return None
     trials_each_change = int(change_rate//nb_steps)
     nb_values = nb_iters*trials_each_change
     nb_changes = nb_trials//trials_each_change
-    for agent in dic_of_rewards.keys():
-        all_means[agent] = []
-        all_stds[agent] = []
-        rewards = np.array(dic_of_rewards[agent])
+    nb_values = nb_iters
+    for agent in dic_of_values.keys():
+        all_means[agent] = np.zeros((nb_iters, nb_changes))
+        values = np.array(dic_of_values[agent])
         for i in range(nb_changes):
             starting_i = i*trials_each_change
-            r_change = rewards[:, starting_i:starting_i+trials_each_change]
-            mean = np.mean(r_change)
-            std = np.std(r_change)
-            all_means[agent].append(mean)
-            all_stds[agent].append(std)
+            r_change = values[:, starting_i:starting_i+trials_each_change]
+            if multiply:
+                r_change *= 1e3/nb_steps
+            mean = np.mean(r_change, axis=1)
+            all_means[agent][:, i] = mean
 
-        array_mean = np.array(all_means[agent])
-        array_std = np.array(all_stds[agent])
-        array_CI = 3.291*array_std / np.sqrt(nb_values)
+        array_mean = all_means[agent]
+        array_std = np.std(array_mean, axis=0)
+        array_mean = np.mean(array_mean, axis=0)
+        array_CI = 1.96*array_std / np.sqrt(nb_values)
         x_axis = np.arange(0, nb_changes)
         ax.plot(x_axis,
                 array_mean,
@@ -665,178 +752,11 @@ def plot_reward_per_change(dic_of_rewards,
         ax.legend(loc='lower center')
     if title == '':
         title = str(time.time())
+    if grid:
+        ax.grid(alpha=0.2)
     if save:
-        plt.savefig('results/reward_per_task_change'+title+'.pdf')
+        plt.savefig('results/'+title+'.pdf')
         plt.close()
-
-
-def plot_time_per_change(dic_of_times,
-                         nb_steps,
-                         nb_trials,
-                         change_rate,
-                         nb_iters,
-                         title='',
-                         xlabel="Number of task changes",
-                         ylabel="Time per decision (ms)",
-                         legend=True,
-                         ax=None,
-                         save=True):
-    if ax is None:
-        fig, ax = plt.subplots()
-    all_means = {}
-    all_stds = {}
-    if change_rate % nb_steps != 0:
-        print("Cannot plot reward per change, change_rate % nb_steps != 0.""")
-        return None
-    trials_each_change = int(change_rate//nb_steps)
-    nb_values = nb_iters*trials_each_change
-    nb_changes = nb_trials//trials_each_change
-    for agent in dic_of_times.keys():
-        all_means[agent] = []
-        all_stds[agent] = []
-        rewards = np.array(dic_of_times[agent])
-        for i in range(nb_changes):
-            starting_i = i*trials_each_change
-            r_change = rewards[:, starting_i:starting_i +
-                               trials_each_change]*1e3  # ms
-            mean = np.mean(r_change)
-            std = np.std(r_change)
-            all_means[agent].append(mean)
-            all_stds[agent].append(std)
-
-        array_mean = np.array(all_means[agent])
-        array_std = np.array(all_stds[agent])
-        array_CI = 3.291*array_std / np.sqrt(nb_values)
-        x_axis = np.arange(0, nb_changes)
-        ax.plot(x_axis,
-                array_mean,
-                label=labels[agent],
-                color=all_colors[colors[agent]],
-                marker='.')
-        ax.fill_between(x_axis,
-                        array_mean-array_CI,
-                        array_mean+array_CI,
-                        color=all_colors[colors[agent]],
-                        alpha=0.15)
-
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel)
-    if legend:
-        ax.legend(loc='lower center')
-    if title == '':
-        title = str(time.time())
-    if save:
-        plt.savefig('results/time_per_task_change'+title+'.pdf')
-        plt.close()
-
-
-def plot_time_after_change(dic_of_times,
-                           nb_steps,
-                           nb_trials,
-                           change_rate,
-                           nb_iters,
-                           title='',
-                           xlabel="Number of steps after the task change",
-                           ylabel="Time per decision (ms)",
-
-                           legend=True,
-                           ax=None,
-                           save=True):
-    if ax is None:
-        fig, ax = plt.subplots()
-    all_medians = {}
-    all_q_25 = {}
-    all_q_75 = {}
-    all_means = {}
-    all_stds = {}
-    length_change = int(change_rate//nb_steps)
-    not_used = nb_trials % length_change
-    nb_values = nb_trials*nb_iters//length_change
-    for agent in dic_of_times.keys():
-        all_medians[agent] = []
-        all_q_25[agent] = []
-        all_q_75[agent] = []
-        all_means[agent] = []
-        all_stds[agent] = []
-        times = dic_of_times[agent]
-        for j in range(length_change):
-            filter_indices = np.array([i+j for i in range(0,
-                                                          nb_trials-not_used,
-                                                          length_change)])
-
-            t_change = np.take(times, filter_indices, 1).flatten()*1e3  # ms
-            # all_values[agent].append(t_change)
-            median = np.median(t_change)
-            q_25 = np.quantile(t_change, 0.25)
-            q_75 = np.quantile(t_change, 0.75)
-
-            all_medians[agent].append(median)
-            all_q_25[agent].append(q_25)
-            all_q_75[agent].append(q_75)
-
-            mean = np.mean(t_change)
-            std = np.std(t_change)
-            all_means[agent].append(mean)
-            all_stds[agent].append(std)
-
-    # Show the plot
-        array_median = np.array(all_medians[agent])
-        array_q_25 = np.array(all_q_25[agent])
-        array_q_75 = np.array(all_q_75[agent])
-        array_mean = np.array(all_means[agent])
-        array_std = np.array(all_stds[agent])
-        array_CI = 3.291*array_std / np.sqrt(nb_values)
-
-        x_axis = np.arange(1, length_change+1)
-        ax.plot(x_axis,
-                array_mean,
-                label=labels[agent],
-                color=all_colors[colors[agent]],
-                marker='.')
-        ax.fill_between(x_axis,
-                        array_mean-array_CI,
-                        array_mean+array_CI,
-                        color=all_colors[colors[agent]],
-                        alpha=0.15)
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel)
-    if legend:
-        ax.legend(loc='upper right')
-
-    if title == '':
-        title = str(time.time())
-    if save:
-        plt.savefig('results/times_after_change'+title+'.pdf')
-        plt.close()
-
-    # all_values = {k:np.array(v) for (k,v) in all_values.items()}
-    # x_ticks = np.arange(change_rate)
-
-    # # Width of each boxplot group
-    # box_width = 0.2
-
-    # # Define colors for the categories
-    # colors = ['lightblue', 'lightgreen', 'lightcoral']  # Different colors for the triplets
-
-    # # Loop over the categories (3 in this case) and plot them
-    # for i, (category, values) in enumerate(all_values.items()):
-    #     # Offset each category slightly on the x-axis
-    #     positions = x_ticks + i * box_width
-    #     # Plot the boxplot for the current category with patch_artist=True
-    #     box = ax.boxplot(values.T, positions=positions, widths=box_width, patch_artist=True,showfliers=False)
-
-    #     # Set the color for each boxplot in the triplet
-    #     for patch in box['boxes']:
-    #         patch.set_facecolor(colors[i])
-
-    # # Customizing the plot
-    # ax.set_xticks(x_ticks + box_width)  # Shift x-ticks to the center of the group
-    # ax.set_xticklabels([f'{i+1}' for i in range(change_rate)])  # Custom x-labels
-
-    # # Label axes
-    # ax.set_xlabel('Group')
-    # ax.set_ylabel('Values')
-    # ax.set_title('50 Triplets of Boxplots with Different Colors')
 
 
 def plot_number_models_cross_env(cross_env_number,
@@ -879,6 +799,14 @@ def get_all_plot(results, parameters, legend=True):
     all_models = {}
     models_created_per_cell = {}
     models_per_cell = {}
+    all_distance = {}
+    all_current_distance = {}
+
+    all_current_models = {}
+    all_models_created = {}
+    all_models_merged = {}
+    all_models_forgotten = {}
+
     for agent in agents_tested:
         if agent in multi_model_agents:
             all_models[agent] = {'nb_model': [],
@@ -888,10 +816,20 @@ def get_all_plot(results, parameters, legend=True):
             if env_tested:
                 models_created_per_cell[agent] = []
                 models_per_cell[agent] = []
+
     for agent in agents_tested:
         all_rewards[agent] = []
         all_times[agent] = []
         all_total_times[agent] = []
+
+        # all_distance[agent] = []
+        all_current_distance[agent] = []
+
+        if agent in multi_model_agents:
+            all_current_models[agent] = []
+            all_models_created[agent] = []
+            all_models_forgotten[agent] = []
+            all_models_merged[agent] = []
 
     for info_exp, all_values in results.items():
         agent_name = info_exp[1]
@@ -899,13 +837,23 @@ def get_all_plot(results, parameters, legend=True):
         all_times[agent_name].append(all_values["times"])
         all_total_times[agent_name].append(all_values["total_time"])
 
+        # all_distance[agent_name].append(all_values["distance_model"])
+        all_current_distance[agent_name].append(
+            all_values["distance_current_model"])
+
         if agent_name in multi_model_agents:
+
+            all_current_models[agent_name].append(all_values['nb_model'])
+            all_models_created[agent_name].append(all_values['nb_creation'])
+            all_models_forgotten[agent_name].append(
+                all_values['nb_forgetting'])
+            all_models_merged[agent_name].append(all_values['nb_merging'])
+
             for key_model in all_models[agent_name].keys():
                 all_models[agent_name][key_model].append(all_values[key_model])
-                # print(all_models[agent])
-                # print(agent)
+
             if env_tested in ["ChangingCrossEnvironment",
-                                                            "PartiallyChangingCrossEnvironment"]:
+                              "PartiallyChangingCrossEnvironment"]:
                 models_created_per_cell[agent_name].append(
                     all_values['creation_per_state'])
                 models_per_cell[agent_name].append(
@@ -917,6 +865,7 @@ def get_all_plot(results, parameters, legend=True):
                 steps=steps,
                 title=title)
     plot_time(all_total_times, title=title)
+
     for agent in agents_tested:
         if agent in multi_model_agents:
             # print(all_models[agent].keys())
@@ -943,50 +892,85 @@ def get_all_plot(results, parameters, legend=True):
                                              round_mod,
                                              title=agent+title,
                                              title_fig='models')
+    # plot_curves(all_distance,
+    #             nb_iters=nb_iters,
+    #             change_rate=change_rate,
+    #             steps=steps,
+    #             ylabel='Best Euclidian distance to the true transitions',
+    #             title=agent+title,
+    #             legend=legend)
+    plot_avg_over_time(all_current_models,
+                       steps,
+                       trials,
+                       change_rate,
+                       nb_iters,
+                       ylabel='Number of models',
+                       title="Number of models"+title,
+                       legend=legend)
     if "ThreeStates" == env_tested or "MAB" == env_tested:
         event = 'steps'
     else:
         event = 'trials'
-    xlabel = 'Number of '+ event + ' after the task change'
-    # plot_reward_after_change(all_rewards,
-    #                          steps,
-    #                          trials,
-    #                          change_rate,
-    #                          nb_iters,
-    #                          title,
-    #                          legend)
-    plot_reward_after_change(all_rewards,
-                             steps,
-                             trials,
-                             change_rate,
-                             nb_iters,
-                             title,
-                             xlabel=xlabel,
-                             legend=legend)
-    plot_reward_per_change(all_rewards,
-                           steps,
-                           trials,
-                           change_rate,
-                           nb_iters,
-                           title,
-                           legend=legend)
+    xlabel = 'Number of ' + event + ' after the task change'
 
-    plot_time_per_change(all_times,
-                         steps,
-                         trials,
-                         change_rate,
-                         nb_iters,
-                         title,
-                         legend=legend)
-    plot_time_after_change(all_times,
-                           steps,
-                           trials,
-                           change_rate,
-                           nb_iters,
-                           title,
-                           xlabel=xlabel,
-                           legend=legend)
+    plot_avg_over_time(all_current_distance,
+                       steps,
+                       trials,
+                       change_rate,
+                       nb_iters,
+                       ylabel='Euclidian distance',
+                       title="Current_distance_over_time"+title,
+                       legend=legend)
+
+    plot_avg_over_time(all_current_distance,
+                       steps,
+                       trials,
+                       change_rate,
+                       nb_iters,
+                       ylabel='Euclidian distance',
+                       title="Current_distance_over_time"+title,
+                       legend=legend)
+
+    plot_avg_over_time(all_rewards,
+                       steps,
+                       trials,
+                       change_rate,
+                       nb_iters,
+                       title="Reward_over_time"+title,
+                       legend=legend)
+
+    plot_avg_over_time(all_times,
+                       steps,
+                       trials,
+                       change_rate,
+                       nb_iters,
+                       title="Computational_time_over_time"+title,
+                       legend=legend,
+                       ylabel="Time per decision (ms)",
+                       multiply=True)
+
+    plot_avg_after_change(all_rewards,
+                          steps,
+                          trials,
+                          change_rate,
+                          nb_iters,
+                          title='Reward_after_change'+title,
+                          xlabel=xlabel,
+                          legend=legend)
+
+    plot_avg_after_change(all_times,
+                          steps,
+                          trials,
+                          change_rate,
+                          nb_iters,
+                          title='Computational_time_after_change'+title,
+                          xlabel=xlabel,
+                          ylabel='Time per decision (ms)',
+                          legend=legend,
+                          multiply=True)
+
     general_performance(all_rewards, title)
+
     plot_four(all_rewards,
               all_times,
               steps,
@@ -995,6 +979,48 @@ def get_all_plot(results, parameters, legend=True):
               nb_iters,
               title,
               xlabel=xlabel)
+
+    plot_four_models(all_current_models,
+                     all_models_created,
+                     all_models_merged,
+                     all_models_forgotten,
+                     steps,
+                     trials,
+                     change_rate,
+                     nb_iters,
+                     title)
+
+    for no_legend in [True, False]:
+        plot_two(all_rewards,
+                 steps,
+                 trials,
+                 change_rate,
+                 nb_iters,
+                 title='reward_sum_up'+title+str(no_legend),
+                 xlabel=xlabel,
+                 ylabel='Reward',
+                 legend=no_legend)
+
+        plot_two(all_current_distance,
+                 steps,
+                 trials,
+                 change_rate,
+                 nb_iters,
+                 ylabel='Euclidian distance to true model',
+                 title='distance_sum_up'+title+str(no_legend),
+                 xlabel=xlabel,
+                 legend=no_legend)
+
+        plot_two(all_times,
+                 steps,
+                 trials,
+                 change_rate,
+                 nb_iters,
+                 ylabel='Time per decision (ms)',
+                 title='time_sum_up'+title+str(no_legend),
+                 xlabel=xlabel,
+                 legend=no_legend,
+                 multiply=True)
 
 
 # ---------------------------------------------------------------------------- #
@@ -1005,7 +1031,8 @@ def get_all_plot(results, parameters, legend=True):
 def plot_maze(world,
               path,
               labels=np.empty(0),
-              arrows=np.empty(0)):
+              arrows=np.empty(0),
+              uncertain = False):
 
     reward = world[world > 0][0]
 
@@ -1129,7 +1156,7 @@ def plot_one_transition(world_number,
             ax.add_patch(plt.Rectangle((j, i), 1, 1, color=color))
             # Add text only in white cells
             if nine_walls[i, j] == 0:
-                percent = round(nine_probas[i, j] * 100,1)
+                percent = round(nine_probas[i, j] * 100, 1)
                 if percent > 0:  # Only display if greater than 0
                     ax.text(j + 0.5, i + 0.5, f"{percent}%",
                             ha='center', va='center', color='black')

@@ -51,8 +51,10 @@ class MBMultiModel():
         self.nSAS = np.zeros(self.shape_SAS, dtype=int)
 
         # Transitions
-        self.tSAS = np.ones(self.shape_SAS) / self.size_environment
-
+        #self.tSAS = np.ones(self.shape_SAS) / self.size_environment
+        self.tSAS = np.zeros(self.shape_SAS)
+        for action in range(self.size_actions):
+                self.tSAS[:,action,:]=np.eye(self.size_environment)
         # Q-Table
         self.Q = np.zeros(self.shape_SA)
 
@@ -158,6 +160,32 @@ class MBMultiModel():
 
         self.compute_reward(state, action, new_nb_model)
 
+    # def get_all_stored_transitions(self):
+    #     all_transitions = {}
+    #     for state in range(self.size_environment):
+    #         for action in range(self.size_actions):
+    #             all_transitions[state,action]=[]
+    #             for mod in range(np.shape(self.all_nSA)[0]):
+    #                 if self.all_nSA[mod,state,action] != 0 :
+    #                     index = (mod, state, action)
+    #                     tSAS = self.all_nSAS[index] / self.all_nSA[index]
+    #                     all_transitions[state,action].append(list(tSAS))
+    #     return all_transitions
+    
+
+    
+    # def get_all_transitions(self):
+    #     all_transitions = {}
+    #     for state in range(self.size_environment):
+    #         for action in range(self.size_actions):
+    #             all_transitions[state,action]=[]
+    #             index = (state, action)
+    #             if self.nSA[state][action] != 0 :
+    #                 tSAS = self.nSAS[index] / self.nSA[index]
+    #                 all_transitions[state,action].append(list(tSAS))
+    #     return all_transitions
+
+    
     def learn_the_model(self, old_state, reward, new_state, action):
 
         # General
@@ -375,7 +403,7 @@ class MBMultiModel():
         nSAS_SA = self.nSAS[old_state][action]
         nSA_SA = self.nSA[old_state][action]
         self.tSAS[old_state][action] = nSAS_SA / nSA_SA
-
+        
         if np.sum(nSAS_SA) != nSA_SA:
             print("nSAS", nSAS_SA)
             print("sum nSAS", np.sum(nSAS_SA))
@@ -397,6 +425,12 @@ class MBMultiModel():
         self.R[old_state][action] = reward_sum / nb_actions
 
     def compute_reward_VI(self, old_state, action):
+        # for action in range(self.size_actions):
+
+        #     if self.nSA[old_state][action] >= self.horizon:
+        #             self.R_VI[old_state][action] = self.R[old_state][action]
+        #     else : 
+        #         self.R_VI[old_state][action] = np.max(self.R)
         self.R_VI[old_state][action] = self.R[old_state][action]
 
     # COUNTS

@@ -2,8 +2,9 @@ import numpy as np
 from const_grid import reward_distance, wall_rate, size
 from const_grid import pattern, reward_value
 from plots import plot_maze, plot_one_transition
-import sys 
+import sys
 sys.setrecursionlimit(5000)
+
 
 def connexe_wall(states, size, min_rate=0):
     '''Check whether the states are next to walls or not.'''
@@ -49,7 +50,7 @@ def state_initial(states):
     states_init = []
     for i in range(len(states)):
         for j in range(len(states)):
-            if states[i, j] == 0 and (i,j) not in pattern.keys():
+            if states[i, j] == 0 and (i, j) not in pattern.keys():
                 states_init.append((i, j))
     states_init = np.array(states_init)
     indices = np.arange(states_init.shape[0])
@@ -147,8 +148,6 @@ def generate_world(size=size,
     cells_on_optimal_path = get_cells_on_optimal_path(distance_initial,
                                                       distance_max,
                                                       high_reward)
-    
-
 
     # Create a dic of cells on the optimal path and their distance to the
     # initial state
@@ -161,37 +160,37 @@ def generate_world(size=size,
 
     world_valid = True
 
-    # Checking that the pattern is on the optimal way and far enough from the
-    # rewarded area
-    for cell, value in pattern.items():
-        if value == 0:  # not a wall
-            # No other path to go to the reward
-            cond = len([k for k, v in distance_init_optimal.items()
-                        if v == distance_initial[cell[0], cell[1]]]) == 0
-            pattern_on_optimal_path = bool(cells_on_optimal_path[cell])
-            if not cond or not pattern_on_optimal_path:
-                world_valid = False
+    # # Checking that the pattern is on the optimal way and far enough from the
+    # # rewarded area
+    # for cell, value in pattern.items():
+    #     if value == 0:  # not a wall
+    #         # No other path to go to the reward
+    #         cond = len([k for k, v in distance_init_optimal.items()
+    #                     if v == distance_initial[cell[0], cell[1]]]) == 0
+    #         pattern_on_optimal_path = bool(cells_on_optimal_path[cell])
+    #         if not cond or not pattern_on_optimal_path:
+    #             world_valid = False
 
-    # Checking that there is no other path
-    world_2 = world.copy()
-    for cell, value in pattern.items():
-        world_2[cell] = -1
-    world_2[high_reward[0], high_reward[1]] = 0
-    for row in range(size):
-        for col in range(size):
-            if world_2[row, col] == -2:
-                world_2[row, col] = 1
+    # # Checking that there is no other path
+    # world_2 = world.copy()
+    # for cell, value in pattern.items():
+    #     world_2[cell] = -1
+    # world_2[high_reward[0], high_reward[1]] = 0
+    # for row in range(size):
+    #     for col in range(size):
+    #         if world_2[row, col] == -2:
+    #             world_2[row, col] = 1
 
-    distance_world_2 = distance_state_initial(world_2)
-    dist_reward_new_world = distance_world_2[high_reward[0], high_reward[1]]
-    cond_distance = dist_reward_new_world == 0
+    # distance_world_2 = distance_state_initial(world_2)
+    # dist_reward_new_world = distance_world_2[high_reward[0], high_reward[1]]
+    # cond_distance = dist_reward_new_world == 0
 
-    if not cond_distance:
-        world_valid = False
+    # if not cond_distance:
+    #     world_valid = False
 
-    # Checking that the reward is not in the pattern
-    if tuple(high_reward) in pattern.keys():
-        world_valid = False
+    # # Checking that the reward is not in the pattern
+    # if tuple(high_reward) in pattern.keys():
+    #     world_valid = False
 
     if not world_valid:
         return generate_world(size=size,
@@ -254,13 +253,20 @@ def generate_uncertainty():
     #          np.random.randint(100,1000),
     #          np.random.randint(1,100),
     #          np.random.randint(1,1000)]
-    
+
     probas = [0.05,
               0.05,
               0.75,
               0.05,
-              0.75,
+              0.05,
               0.05]
+
+    # probas = [0.1*np.random.random(),
+    #           0.1*np.random.random(),
+    #           0.8,
+    #           0.1*np.random.random(),
+    #           0.1*np.random.random(),
+    #           0.1*np.random.random()]
 
     # probas = np.random.random(size=6)
 
@@ -458,6 +464,7 @@ def generate_pattern_uncertain(number=20):
         np.save('Env/Transitions/Transitions_'+str(i)+'_U.npy', transitions)
 
 
+
 def generate_transitions_obstructed(number=20):
     for i in range(number):
         transitions = np.load(
@@ -483,6 +490,7 @@ def cyclic_permutation(lst):
     if len(lst) <= 1:
         return lst
     shift = np.random.randint(1, len(lst) - 1)
+    # shift = 1
     return lst[-shift:] + lst[:-shift]
 
 
@@ -494,9 +502,9 @@ def generate_transitions_cyclic(number=20):
         size = np.shape(transitions)[0]
         for row in range(size):
             for col in range(size):
-                if (row,col) in pattern.keys():
-                # if True:
-                    action_permutation = cyclic_permutation([i for i in range(5)])
+                if (row, col) in pattern.keys():
+                    action_permutation = cyclic_permutation(
+                        [i for i in range(5)])
                     t_copy = transitions[row, col].copy()
                     for action in range(5):
                         new_action = action_permutation[action]
@@ -507,6 +515,23 @@ def generate_transitions_cyclic(number=20):
                 str(i) + '_C.npy', transitions)
 
 
+def generate_all_transitions_cyclic(number=20):
+    for i in range(number):
+        transitions = np.load(
+            'Env/Transitions/Transitions_' + str(i) + '.npy',
+            allow_pickle=True)
+        size = np.shape(transitions)[0]
+        for row in range(size):
+            for col in range(size):
+                action_permutation = cyclic_permutation([i for i in range(5)])
+                t_copy = transitions[row, col].copy()
+                for action in range(5):
+                    new_action = action_permutation[action]
+                    transitions[row, col][action] = t_copy[new_action]
+        np.save('Env/Transitions/Transitions_' +
+                str(i) + '_D.npy', transitions)
+
+
 def generate_reward(number=20, rewards=reward_value):
     for i in range(number):
         world = np.load('Env/Tables/World_'+str(i)+'.npy', allow_pickle=True)
@@ -515,14 +540,15 @@ def generate_reward(number=20, rewards=reward_value):
         path = 'Env/Tables/Rewards_'+str(i)+'.npy'
         np.save(path, world)
 
+
 def generate_optimal_policies(number=20):
     for i in range(number):
         world = np.load('Env/Tables/World_'+str(i)+'.npy', allow_pickle=True)
         # rewards = np.load('Env/Tables/Rewards_'+str(i)+'.npy')
         # transitions = np.load('Env/Transitions/Transitions_'+str(i)+'.npy')
         # transitions_U = np.load('Env/Transitions/Transitions_'+str(i)+'_U.npy')
-        _,optimal_policy = value_iteration(i,cond='')
-        _,optimal_policy_C=value_iteration(i,cond='_C')
+        _, optimal_policy = value_iteration(i, cond='')
+        _, optimal_policy_C = value_iteration(i, cond='_C')
         path = 'Env/Optimal_policy/World_'+str(i)+'.pdf'
         path_U = 'Env/Optimal_policy/World_'+str(i)+'_C.pdf'
         # print(optimal_policy)
@@ -538,13 +564,14 @@ def generate_all(number=10):
     generate_pattern_uncertain(number)
     generate_transitions_obstructed(number)
     generate_transitions_cyclic(number)
+    generate_all_transitions_cyclic(number)
     generate_reward(number)
     generate_optimal_policies(number)
 
 
 def value_iteration(world_number, cond='', gamma=0.95, accuracy=1e-3):
     transitions = np.load('Env/Transitions/Transitions_' +
-                str(world_number) + cond+'.npy')
+                          str(world_number) + cond+'.npy')
     rewards = np.load('Env/Tables/Rewards_'+str(world_number)+'.npy')
     size = np.shape(transitions)[0]
     nb_actions = np.shape(transitions)[2]
@@ -563,7 +590,7 @@ def value_iteration(world_number, cond='', gamma=0.95, accuracy=1e-3):
         if np.max(diff) < accuracy:
             converged = True
     policy = np.argmax(Q, axis=1)
-    policy = policy.reshape((size,size))
+    policy = policy.reshape((size, size))
     return V, policy
 
 

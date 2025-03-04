@@ -4,27 +4,64 @@ from plots import get_all_plot
 
 def set_param_agent(params_shared={},
                     params_finite_horizon={},
-                    params_multi_model={},
-                    params_finite_horizon2={}):
+                    params_multi_model={}):
 
     params_VI_softmax = {**params_shared}
 
     params_SoftmaxFiniteHorizon = {**params_shared,
                                    **params_finite_horizon}
 
-    params_SoftmaxFiniteHorizon2 = {**params_shared,
-                                    **params_finite_horizon2}
+    params_SoftmaxFiniteHorizon5 = {**params_shared,
+                                    'horizon': 5}
+
+    params_SoftmaxFiniteHorizon10 = {**params_shared,
+                                     'horizon': 10}
+
+    params_SoftmaxFiniteHorizon20 = {**params_shared,
+                                     'horizon': 20}
 
     params_SoftmaxMultiModel = {**params_shared,
                                 **params_multi_model}
 
+    low_KL = 0.3
+    no_merging = 0.
+    low_merging = 0.01
+    high_merging = 0.5
+    low_memory = 2
+    low_horizon = 3
+    high_horizon = 20
+    high_KL = 1.5
+
     agent_parameters = {'VI_softmax': params_VI_softmax,
                         'SoftmaxFiniteHorizon': params_SoftmaxFiniteHorizon,
-                        'SoftmaxFiniteHorizon5': params_SoftmaxFiniteHorizon,
-                        'SoftmaxFiniteHorizon20': params_SoftmaxFiniteHorizon2,
+                        'SoftmaxFiniteHorizon5': params_SoftmaxFiniteHorizon5,
+                        'SoftmaxFiniteHorizon10': params_SoftmaxFiniteHorizon10,
+                        'SoftmaxFiniteHorizon20': params_SoftmaxFiniteHorizon20,
                         'SoftmaxMultiModel': params_SoftmaxMultiModel,
                         }
 
+    for agent in ['MMLowKL', 'MMHighKL', 'MMLowHorizon', 'MMHighHorizon',
+                  'MMHighHorizonLowKL', 'MMLowMerging', 'MMHighMerging',
+                  'MMForget', 'MMNoMerging','Baseline']:
+        agent_parameters[agent] = params_SoftmaxMultiModel.copy()
+
+    agent_parameters['MMLowKL']['kl_threshold'] = low_KL
+    agent_parameters['MMHighKL']['kl_threshold'] = high_KL
+    agent_parameters['MMLowHorizon']['horizon'] = low_horizon
+    agent_parameters['MMHighHorizon']['horizon'] = high_horizon
+    agent_parameters['MMHighHorizonLowKL']['horizon'] = high_horizon
+    agent_parameters['MMHighHorizonLowKL']['kl_threshold'] = low_KL
+
+    for agent in ['MMLowMerging', 'MMHighMerging', 'MMForget', 'MMNoMerging']:
+        agent_parameters[agent]['kl_threshold'] = low_KL
+    agent_parameters['MMLowMerging']['merging_threshold'] = low_merging
+    agent_parameters['MMHighMerging']['merging_threshold'] = high_merging
+
+    agent_parameters['MMNoMerging']['merging_threshold'] = no_merging
+
+    agent_parameters['MMForget']['nb_max_models'] = low_memory
+    agent_parameters['MMForget']['merging_threshold'] = no_merging
+    
     return agent_parameters
 
 
@@ -36,6 +73,60 @@ def generate_seed(number_of_the_experiment):
 # Experiments
 # ---------------------------------------------------------------------------- #
 
+# ---------------------------------------------------------------------------- #
+# DiffThreeStates
+# Exp1 - Test
+# ---------------------------------------------------------------------------- #
+
+# agents_to_test = ['VI_softmax',
+#                   'SoftmaxFiniteHorizon5',
+#                   'SoftmaxFiniteHorizon10',
+#                   'SoftmaxFiniteHorizon20',
+#                   'SoftmaxMultiModel']
+
+# env_to_test = 'DiffThreeStates'
+# play_parameters = {'trials': 2000,
+#                    'max_step': 1}
+# env_parameters = [{"probas": [[0.8,0.9],[0.2,0.1]],
+#                    "step_change": 50}]
+
+
+# starting_seed = generate_seed(0)
+# nb_tests = 200
+
+
+# nb_proc = 10
+
+# # Parameters agents
+# params_shared = {"threshold_VI": 1e-3,
+#                  "max_iterations": 1000,
+#                  "step_update": 1,
+#                  "beta": 10,
+#                  "gamma": 0.95}
+
+# params_finite_horizon = {'horizon': 5}
+
+# params_multi_model = {"horizon": 10,
+#                       "kl_threshold": 0.7,
+#                       "merging_threshold": 0.1,
+#                       "delay": 1,
+#                       "nb_max_models": 5}
+
+
+# agent_parameters = set_param_agent(params_shared,
+#                                    params_finite_horizon,
+#                                    params_multi_model)
+
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
+
+# get_all_plot(res, param)
 
 # ---------------------------------------------------------------------------- #
 # MAB
@@ -77,7 +168,6 @@ def generate_seed(number_of_the_experiment):
 #                       "nb_max_models": 5}
 
 
-
 # agent_parameters = set_param_agent(params_shared,
 #                                    params_finite_horizon,
 #                                    params_multi_model,
@@ -93,51 +183,47 @@ def generate_seed(number_of_the_experiment):
 #                            nb_processes=nb_proc)
 
 # get_all_plot(res, param)
-
 # ---------------------------------------------------------------------------- #
 # Three States environment
 # Exp 1 - Basic task
 # ---------------------------------------------------------------------------- #
-agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon5',
-                  'SoftmaxFiniteHorizon20',
-                  'SoftmaxMultiModel']
+# agents_to_test = ['VI_softmax',
+#                   'SoftmaxFiniteHorizon5',
+#                   'SoftmaxFiniteHorizon20',
+#                   'SoftmaxMultiModel']
 
-env_to_test = 'ThreeStates'
-play_parameters = {'trials': 2000,
-                   'max_step': 1}
-env_parameters = [{"slip": 0.1,
-                   "step_change": 50}]
-
-
-starting_seed = generate_seed(0)
-nb_tests = 100
+# env_to_test = 'ThreeStates'
+# play_parameters = {'trials': 2000,
+#                    'max_step': 1}
+# env_parameters = [{"slip": 0.1,
+#                    "step_change": 50}]
 
 
-nb_proc = 10
+# starting_seed = generate_seed(0)
+# nb_tests = 100
 
-# Parameters agents
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 10,
-                 "gamma": 0.95}
 
-params_finite_horizon = {'horizon': 5}
+# nb_proc = 10
 
-params_finite_horizon2 = {'horizon': 20}
+# # Parameters agents
+# params_shared = {"threshold_VI": 1e-3,
+#                  "max_iterations": 1000,
+#                  "step_update": 1,
+#                  "beta": 10,
+#                  "gamma": 0.95}
 
-params_multi_model = {"horizon": 5,
-                      "kl_threshold": 0.3,
-                      "merging_threshold": 0.2,
-                      "delay": 1,
-                      "nb_max_models": 5}
+# params_finite_horizon = {'horizon': 5}
+
+# params_multi_model = {"horizon": 5,
+#                       "kl_threshold": 0.3,
+#                       "merging_threshold": 0.2,
+#                       "delay": 1,
+#                       "nb_max_models": 5}
 
 
 # agent_parameters = set_param_agent(params_shared,
 #                                    params_finite_horizon,
-#                                    params_multi_model,
-#                                    params_finite_horizon2)
+#                                    params_multi_model)
 
 # res, param = main_function(agents_to_test,
 #                            env_to_test,
@@ -153,7 +239,7 @@ params_multi_model = {"horizon": 5,
 
 # ---------------------------------------------------------------------------- #
 # Three States environment
-# Exp 2 with uncertain reward - Not in the article
+# Exp 2 with uncertain reward
 # ---------------------------------------------------------------------------- #
 # starting_seed = generate_seed(1)
 
@@ -164,8 +250,7 @@ params_multi_model = {"horizon": 5,
 
 # agent_parameters = set_param_agent(params_shared,
 #                                    params_finite_horizon,
-#                                    params_multi_model,
-#                                    params_finite_horizon2)
+#                                    params_multi_model)
 
 # res, param = main_function(agents_to_test,
 #                            env_to_test,
@@ -199,8 +284,7 @@ params_multi_model = {"horizon": 5,
 
 # agent_parameters = set_param_agent(params_shared,
 #                                    params_finite_horizon,
-#                                    params_multi_model,
-#                                    params_finite_horizon2)
+#                                    params_multi_model)
 
 # res, param = main_function(agents_to_test,
 #                            env_to_test,
@@ -233,8 +317,65 @@ params_multi_model = {"horizon": 5,
 
 # agent_parameters = set_param_agent(params_shared,
 #                                    params_finite_horizon,
-#                                    params_multi_model,
-#                                    params_finite_horizon2)
+#                                    params_multi_model)
+
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
+
+# get_all_plot(res, param)
+
+
+# ---------------------------------------------------------------------------- #
+# Chain Environment
+# Exp 0 with no bait reward and high uncertainty
+# ---------------------------------------------------------------------------- #
+
+agents_to_test = ['VI_softmax',
+                  'SoftmaxFiniteHorizon10',
+                  'SoftmaxMultiModel']
+# agents_to_test = [
+#                   'SoftmaxMultiModel']
+
+env_to_test = 'ChainProblem'
+play_parameters = {'trials': 500,
+                   'max_step': 50}
+
+env_parameters = [{"slip": 0.1,
+                  "size_chain": 7,
+                   "step_change": 500,
+                   "changes": ['S']}]
+
+
+starting_seed = generate_seed(2)
+nb_tests = 10
+
+
+nb_proc = 10
+
+# Parameters agents
+params_shared = {"threshold_VI": 1e-3,
+                 "max_iterations": 1000,
+                 "step_update": 1,
+                 "beta": 3,
+                 "gamma": 0.95}
+params_finite_horizon = {'horizon': 10}
+
+params_multi_model = {"horizon": 10,
+                      "kl_threshold": 1.,
+                      "merging_threshold": 0.1,
+                      "delay": 1,
+                      "nb_max_models": 5}
+
+
+# agent_parameters = set_param_agent(params_shared,
+#                                    params_finite_horizon,
+#                                    params_multi_model)
 
 # res, param = main_function(agents_to_test,
 #                            env_to_test,
@@ -254,39 +395,40 @@ params_multi_model = {"horizon": 5,
 # ---------------------------------------------------------------------------- #
 
 agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon',
+                  'SoftmaxFiniteHorizon10',
                   'SoftmaxMultiModel']
-agents_to_test = [
-                  'SoftmaxMultiModel']
+# agents_to_test = [
+#                   'SoftmaxMultiModel']
 
 env_to_test = 'ChainProblem'
-# play_parameters = {'trials': 500,
-#                    'max_step': 50}
+play_parameters = {'trials': 500,
+                   'max_step': 50}
 
-# env_parameters = [{"slip": 0.1,
-#                   "size_chain": 5,
-#                    "step_change": 500,
-#                    "changes": ['S']}]
+env_parameters = [{"slip": 0.1,
+                  "size_chain": 5,
+                   "step_change": 500,
+                   "changes": ['S']}]
 
 
 starting_seed = generate_seed(2)
-nb_tests = 20
+nb_tests = 10
 
 
-# nb_proc = 10
+nb_proc = 10
 
-# # Parameters agents
-# params_shared = {"threshold_VI": 1e-3,
-#                  "max_iterations": 1000,
-#                  "step_update": 1,
-#                  "beta": 5,
-#                  "gamma": 0.95}
-# params_finite_horizon = {'horizon': 10}
-# params_multi_model = {"horizon": 10,
-#                       "kl_threshold": 1,
-#                       "merging_threshold": 0.1,
-#                       "delay": 1,
-#                       "nb_max_models": 5}
+# Parameters agents
+params_shared = {"threshold_VI": 1e-3,
+                 "max_iterations": 1000,
+                 "step_update": 1,
+                 "beta": 3,
+                 "gamma": 0.95}
+params_finite_horizon = {'horizon': 10}
+
+params_multi_model = {"horizon": 10,
+                      "kl_threshold": 1,
+                      "merging_threshold": 0.1,
+                      "delay": 1,
+                      "nb_max_models": 5}
 
 
 # agent_parameters = set_param_agent(params_shared,
@@ -334,12 +476,24 @@ nb_tests = 20
 
 # get_all_plot(res, param)
 
-
 # ---------------------------------------------------------------------------- #
 # Chain Environment
-# Exp 3 with h=3
+# Parameter Comparison
 # ---------------------------------------------------------------------------- #
 
+
+agents_to_test = ['Baseline',
+                  'MMLowKL',
+                  'MMHighKL',
+                  'MMLowHorizon',
+                  'MMHighHorizon',
+                  'MMHighHorizonLowKL']
+
+
+# agents_to_test = [
+#                   'SoftmaxMultiModel']
+
+env_to_test = 'ChainProblem'
 play_parameters = {'trials': 500,
                    'max_step': 50}
 
@@ -349,37 +503,145 @@ env_parameters = [{"slip": 0.1,
                    "changes": ['S']}]
 
 
-starting_seed = generate_seed(4)
-nb_tests = 20
+starting_seed = generate_seed(1000)
+nb_tests = 50
+
+
 nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
                  "max_iterations": 1000,
                  "step_update": 1,
-                 "beta": 5,
+                 "beta": 3,
                  "gamma": 0.95}
-params_finite_horizon = {'horizon': 3}
-params_multi_model = {"horizon": 3,
+params_finite_horizon = {'horizon': 10}
+
+params_multi_model = {"horizon": 10,
                       "kl_threshold": 1,
                       "merging_threshold": 0.1,
                       "delay": 1,
                       "nb_max_models": 5}
 
-agent_parameters = set_param_agent(params_shared,
-                                   params_finite_horizon,
-                                   params_multi_model)
 
-res, param = main_function(agents_to_test,
-                           env_to_test,
-                           nb_tests,
-                           play_parameters,
-                           starting_seed,
-                           env_parameters,
-                           agent_parameters,
-                           nb_processes=nb_proc)
+# agent_parameters = set_param_agent(params_shared,
+#                                    params_finite_horizon,
+#                                    params_multi_model)
 
-get_all_plot(res, param)
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
+
+# get_all_plot(res, param)
+
+
+# ---------------------------------------------------------------------------- #
+# Chain Environment
+# Parameter Comparison 2
+# ---------------------------------------------------------------------------- #
+
+
+agents_to_test = ['Baseline', 'MMLowMerging', 'MMHighMerging',
+                  'MMForget', 'MMNoMerging']
+# agents_to_test = [
+#                   'SoftmaxMultiModel']
+
+env_to_test = 'ChainProblem'
+play_parameters = {'trials': 500,
+                   'max_step': 50}
+
+env_parameters = [{"slip": 0.1,
+                  "size_chain": 5,
+                   "step_change": 500,
+                   "changes": ['S']}]
+
+
+starting_seed = generate_seed(1001)
+nb_tests = 50
+
+
+nb_proc = 10
+
+# Parameters agents
+params_shared = {"threshold_VI": 1e-3,
+                 "max_iterations": 1000,
+                 "step_update": 1,
+                 "beta": 3,
+                 "gamma": 0.95}
+params_finite_horizon = {'horizon': 10}
+
+params_multi_model = {"horizon": 10,
+                      "kl_threshold": 1,
+                      "merging_threshold": 0.1,
+                      "delay": 1,
+                      "nb_max_models": 5}
+
+
+# agent_parameters = set_param_agent(params_shared,
+#                                    params_finite_horizon,
+#                                    params_multi_model)
+
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
+
+# get_all_plot(res, param)
+
+# ---------------------------------------------------------------------------- #
+# Chain Environment
+# Exp 3 with h=3
+# ---------------------------------------------------------------------------- #
+
+# play_parameters = {'trials': 500,
+#                    'max_step': 50}
+
+# env_parameters = [{"slip": 0.1,
+#                   "size_chain": 5,
+#                    "step_change": 500,
+#                    "changes": ['S']}]
+
+
+# starting_seed = generate_seed(4)
+# nb_tests = 20
+# nb_proc = 10
+
+# # Parameters agents
+# params_shared = {"threshold_VI": 1e-3,
+#                  "max_iterations": 1000,
+#                  "step_update": 1,
+#                  "beta": 5,
+#                  "gamma": 0.95}
+# params_finite_horizon = {'horizon': 3}
+# params_multi_model = {"horizon": 3,
+#                       "kl_threshold": 1,
+#                       "merging_threshold": 0.1,
+#                       "delay": 1,
+#                       "nb_max_models": 5}
+
+# agent_parameters = set_param_agent(params_shared,
+#                                    params_finite_horizon,
+#                                    params_multi_model)
+
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
+
+# get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
@@ -801,59 +1063,155 @@ get_all_plot(res, param)
 # ---------------------------------------------------------------------------- #
 
 
+agents_to_test = ['VI_softmax',
+                  'SoftmaxFiniteHorizon10',
+                  'SoftmaxFiniteHorizon5',
+                  'SoftmaxFiniteHorizon20',
+                  'SoftmaxMultiModel']
+
 # agents_to_test = ['VI_softmax',
-#                   'SoftmaxFiniteHorizon',
+#                   'SoftmaxFiniteHorizon10',
 #                   'SoftmaxMultiModel']
 
-# # agents_to_test = ['SoftmaxMultiModel']
-# # agents_to_test = ['SoftmaxFiniteHorizon']
 
+play_parameters = {'trials': 1000,
+                   'max_step': 100}
 
-# # env_to_test = 'ChangingCrossEnvironment'
-# env_to_test = 'PartiallyChangingCrossEnvironment'
-# play_parameters = {'trials': 200,
-#                    'max_step': 100}
+env_parameters = []
 
-# env_parameters = []
-# for i in range(5):
+# env_to_test = 'ChangingCrossEnvironment'
+# for i in range(1):
 #     env_parameters.append({'number': i,
-#                            'step_change': 2e3,
+#                            'step_change': 1000,
 #                            'conds': ['', '_C']})
 
-
-# starting_seed = generate_seed(15)
-# nb_tests = 10
-# nb_proc = 11
-
-# # Parameters agents
-# params_shared = {"threshold_VI": 1e-3,
-#                  "max_iterations": 1000,
-#                  "step_update": 1,
-#                  "beta": 5,
-#                  "gamma": 0.95}
-# params_finite_horizon = {'horizon': 10}
-
-# params_multi_model = {"horizon": 10,
-#                       "kl_threshold": 1.,
-#                       "merging_threshold": 0.1,
-#                       "delay": 1,
-#                       "nb_max_models": 5}
+env_to_test = 'PartiallyChangingCrossEnvironment'
+for i in range(10):
+    env_parameters.append({'number': i,
+                           'step_change': 2000,
+                           'conds': ['', '_D'],
+                           'value_change': 0.2,
+                           'uncertain':False})
 
 
-# agent_parameters = set_param_agent(params_shared,
-#                                    params_finite_horizon,
-#                                    params_multi_model)
+starting_seed = generate_seed(17)
+nb_tests = 5
+nb_proc = 11
 
-# res, param = main_function(agents_to_test,
-#                            env_to_test,
-#                            nb_tests,
-#                            play_parameters,
-#                            starting_seed,
-#                            env_parameters,
-#                            agent_parameters,
-#                            nb_processes=nb_proc)
+# Parameters agents
+params_shared = {"threshold_VI": 1e-3,
+                 "max_iterations": 1000,
+                 "step_update": 1,
+                 "beta": 3,
+                 "gamma": 0.95}
 
-# get_all_plot(res, param)
+params_finite_horizon = {'horizon': 10}
+
+params_multi_model = {"horizon": 10,
+                      "kl_threshold": 1.,
+                      "merging_threshold": 0.1,
+                      "delay": 1,
+                      "nb_max_models": 5}
+
+
+agent_parameters = set_param_agent(params_shared,
+                                   params_finite_horizon,
+                                   params_multi_model)
+
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
+
+get_all_plot(res, param)
+
+
+# ---------------------------------------------------------------------------- #
+# Cross Environment
+# Exp 2
+# ---------------------------------------------------------------------------- #
+
+agents_to_test = ['VI_softmax',
+                  'SoftmaxFiniteHorizon10',
+                  'SoftmaxFiniteHorizon5',
+                  'SoftmaxFiniteHorizon20',
+                  'SoftmaxMultiModel']
+
+# agents_to_test = ['VI_softmax',
+#                   'SoftmaxFiniteHorizon10',
+#                   'SoftmaxMultiModel']
+
+
+play_parameters = {'trials': 1000,
+                   'max_step': 100}
+
+env_parameters = []
+
+# env_to_test = 'ChangingCrossEnvironment'
+# for i in range(1):
+#     env_parameters.append({'number': i,
+#                            'step_change': 1000,
+#                            'conds': ['', '_C']})
+
+env_to_test = 'PartiallyChangingCrossEnvironment'
+for i in range(10):
+    env_parameters.append({'number': i,
+                           'step_change': 2000,
+                           'conds': ['', '_D'],
+                           'value_change': 0.2,
+                           'uncertain':True})
+
+
+starting_seed = generate_seed(17)
+nb_tests = 5
+nb_proc = 11
+
+# Parameters agents
+params_shared = {"threshold_VI": 1e-3,
+                 "max_iterations": 1000,
+                 "step_update": 1,
+                 "beta": 3,
+                 "gamma": 0.95}
+
+params_finite_horizon = {'horizon': 10}
+
+params_multi_model = {"horizon": 10,
+                      "kl_threshold": 1.,
+                      "merging_threshold": 0.1,
+                      "delay": 1,
+                      "nb_max_models": 5}
+
+
+agent_parameters = set_param_agent(params_shared,
+                                   params_finite_horizon,
+                                   params_multi_model)
+
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
+
+get_all_plot(res, param)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ---------------------------------------------------------------------------- #

@@ -4,7 +4,7 @@ from consts import multi_model_agents
 import numpy as np
 import os
 import time
-
+from scipy.spatial.distance import cdist
 # Function to save a file as the first non-indexed number
 
 
@@ -25,12 +25,6 @@ def play(environment,
 
     name_agent = agent.__class__.__name__
     multi_model = name_agent in multi_model_agents
-    # print(name_agent)
-    # print(multi_model_agents)
-    # print(name_agent)
-    # print(multi_model)
-    # path = 'data/'+name_agent+'/log.npy'
-    # unique_path, number = uniquify(path)
 
     log = {}
 
@@ -40,14 +34,24 @@ def play(environment,
                'nb_creation': [],
                'nb_forgetting': [],
                'nb_merging': []}
+
+    env_name = environment.__class__.__name__
+
+    # log['distance_model'] = []
+    log['distance_current_model'] = []
+
     start_time = time.time()
     reward_per_episode = []
     time_per_episode = []
-    # policy_value_error = []
-    # threshold = 1e-3
 
     for trial in range(trials):
         cumulative_reward, step, game_over, time_trial = 0, 0, False, 0
+
+        mod_agent = agent.tSAS
+        mod_env = environment.transitions
+        distance = compute_current_distance_transition(mod_env, mod_agent)
+        log["distance_current_model"].append(distance)
+        
         time_init_trial = time.time()
         while not game_over:
             old_state = environment.agent_state
@@ -70,6 +74,11 @@ def play(environment,
             log['nb_forgetting'].append(agent.total_forgetting)
             log['nb_merging'].append(agent.total_merging)
 
+        # mod_agent = agent.get_all_transitions()
+        # mod_env = environment.all_transitions
+        # distance = compute_distance_transitions(mod_env, mod_agent)
+        # log["distance_model"].append(distance)
+
     end_time = time.time()
     log['reward'] = reward_per_episode
     log['total_time'] = end_time-start_time
@@ -77,9 +86,48 @@ def play(environment,
     if multi_model:
         log['creation_per_state'] = agent.creation_per_state
         log['model_per_state'] = agent.model_per_state
+        # from plots import plot_all_distrib_several_models, plot_V
+        # # plot_all_distrib_several_models(environment, agent, nb_min_distrib=2)
+        # policy_table = np.argmax(agent.Q, axis=1)
+        # table = np.max(agent.Q,axis=1)
+        # shape = (7,7)
+        # plot_V(table, policy_table, shape, path='distrib/table.png')
     # log['policy_value_error']= policy_value_error
     # np.save(unique_path, log)
+    # from plots import plot_all_distrib_several_models, plot_V
+    # policy_table = np.argmax(agent.Q, axis=1)
+    # table = np.max(agent.Q,axis=1)
+    # shape = (7,7)
+    # plot_V(table, policy_table, shape, path='distrib/'+name_agent+'.png')
+    # print(log['distance_model'])
+    # import matplotlib.pyplot as plt
+    # plt.plot(log['distance_model'])
+    # plt.show()
     return log
+
+
+def compute_current_distance_transition(transi_env, transi_agent):
+    return np.sqrt(np.sum((transi_env - transi_agent) ** 2))
+
+def compute_distance_transitions(transi_env, transi_agent):
+    distance = []
+    for (state, action) in transi_env.keys():
+        mod_env = transi_env[state, action]
+        mod_agent = transi_agent[state, action]
+        if len(mod_agent) == 0:
+            mod_agent = [[0.]*len(mod_env[0])]
+        mod_env = np.array(mod_env)
+        mod_agent = np.array(mod_agent)
+        # distances = cdist(mod_env, mod_agent, metric='euclidean')
+        distances = np.sqrt(np.sum((mod_env[:, np.newaxis] - mod_agent) ** 2, 
+                                   axis=2))
+        min_distances = np.min(distances, axis=1)
+
+        avg_min_distance = np.mean(min_distances)
+        # print(avg_min_distance)
+        distance.append(avg_min_distance)
+
+    return np.mean(distance)
 
 
 def play_with_logs(environment, agent, trials=100, max_step=30):
@@ -103,6 +151,7 @@ def play_with_logs(environment, agent, trials=100, max_step=30):
         nb_models.append(np.sum(agent.nb_models))
     return reward_per_episode, nb_models
 
+
 def get_simulation_to_do(agent_to_test,
                          env_name,
                          nb_tests,
@@ -113,18 +162,19 @@ def get_simulation_to_do(agent_to_test,
     simulation_to_do = []
     seed = starting_seed
     for agent_name in agent_to_test:
-        for iteration in range(nb_tests):
-            for param_env in env_parameters :
-                trial_name = (env_name, agent_name, iteration)
+        count = 0
+        for _ in range(nb_tests):
+            for param_env in env_parameters:
+                trial_name = (env_name, agent_name, count)
                 simulation_to_do.append({'trial_name': trial_name,
                                         'env_name': env_name,
-                                        'agent_name': agent_name,
-                                        'seed': seed,
-                                        'play_parameters': play_parameters,
-                                        'env_param': param_env,
-                                        'agent_param': agent_parameters[agent_name]})
-
-            seed += 1
+                                         'agent_name': agent_name,
+                                         'seed': seed,
+                                         'play_parameters': play_parameters,
+                                         'env_param': param_env,
+                                         'agent_param': agent_parameters[agent_name]})
+                count += 1
+                seed += 1
     return simulation_to_do
 
 
@@ -141,7 +191,7 @@ def one_parameter_play_function(all_params_one_trial):
 
     environment = envs[env_name](**env_parameter)
     agent = agents[agent_name](environment, **agent_parameter)
-
+    # print(trial_name)
     return trial_name, play(environment, agent, **play_parameters)
 
 
@@ -200,9 +250,9 @@ def main_function(agent_to_test,
                   'starting_seed': starting_seed,
                   'env_param': env_parameters,
                   'agent_param': agent_parameters,
-                  'time':title
+                  'time': title
                   }
-    
+
     np.save('results/parameters'+title+'.npy', parameters)
     return logs, parameters
 
@@ -239,7 +289,7 @@ def main_function(agent_to_test,
 #                   participant_choices,
 #                   env_name,
 #                   env_parameter):
-#     '''Finding the best fit with the minimize function. To improve this code, 
+#     '''Finding the best fit with the minimize function. To improve this code,
 #     we should use multiprocessing.'''
 #     print("Parameter fitting started")
 #     start_time = time.time()
@@ -269,4 +319,3 @@ def main_function(agent_to_test,
 #     print("The best parameters and the corresponding likelihood were saved " +
 #           "in "+path_lik + " and " + path_params)
 #     return best_params,  best_likelihood, path_lik, path_params, current_time
-

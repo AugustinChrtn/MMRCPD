@@ -22,7 +22,11 @@ class Basic_MB:
         self.nSA = np.zeros(self.shape_SA)
         self.nSAS = np.zeros(self.shape_SAS)
 
-        self.tSAS = np.ones(self.shape_SAS) / self.size_environment
+        # self.tSAS = np.ones(self.shape_SAS) / self.size_environment
+        self.tSAS = np.zeros(self.shape_SAS)
+        for action in range(self.size_actions):
+                self.tSAS[:,action,:]=np.eye(self.size_environment)
+
         self.Q = np.zeros(self.shape_SA)
 
     def choose_action(self, state):
@@ -61,6 +65,18 @@ class Basic_MB:
             self.Q = new_Q
             if np.max(diff) < threshold:
                 converged = True
+
+    def get_all_transitions(self):
+        all_transitions = {}
+        for state in range(self.size_environment):
+            for action in range(self.size_actions):
+                all_transitions[state,action]=[]
+                if self.nSA[state][action]>0:
+                    index = (state, action)
+                    tSAS = self.nSAS[index] / self.nSA[index]
+                    all_transitions[state,action].append(list(tSAS))
+        # print(all_transitions)
+        return all_transitions
 
 
 class VI_softmax(Basic_MB):
@@ -141,7 +157,14 @@ class FiniteHorizonMB:
         self.R_VI = np.zeros(self.shape_SA)  # reward for value iteration
         self.nSA = np.zeros(self.shape_SA)
         self.nSAS = np.zeros(self.shape_SAS, dtype='int')
-        self.tSAS = np.ones(self.shape_SAS) / self.size_environment
+
+        # self.tSAS = np.ones(self.shape_SAS) / self.size_environment
+        
+        self.tSAS = np.zeros(self.shape_SAS)
+        for action in range(self.size_actions):
+                self.tSAS[:,action,:]=np.eye(self.size_environment)
+
+
         self.Q = np.zeros(self.shape_SA)
 
         # horizon tables
@@ -215,7 +238,18 @@ class FiniteHorizonMB:
                 self.Q = new_Q
                 if np.max(diff) < threshold:
                     converged = True
-
+                    
+    def get_all_transitions(self):
+        all_transitions = {}
+        for state in range(self.size_environment):
+            for action in range(self.size_actions):
+                all_transitions[state,action]=[]
+                if self.nSA[state][action]>0:
+                    index = (state, action)
+                    tSAS = self.nSAS[state][action] / \
+            self.normalization_factor
+                    all_transitions[state,action].append(list(tSAS))
+        return all_transitions
 
 class Epsilon_MB_horizon(FiniteHorizonMB):
     def __init__(self, environment, gamma, horizon, epsilon):
