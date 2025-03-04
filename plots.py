@@ -1032,7 +1032,7 @@ def plot_maze(world,
               path,
               labels=np.empty(0),
               arrows=np.empty(0),
-              uncertain = False):
+              uncertain = np.empty(0)):
 
     reward = world[world > 0][0]
 
@@ -1052,12 +1052,19 @@ def plot_maze(world,
         if value == 0:
             pattern_array[key] = True
 
+    if len(uncertain) > 0 :
+        pattern_array = np.random.choice(a=[False, True], 
+                                        size=np.shape(init_state),
+                                        p=[0.8,0.2])
+        pattern_array[walls]=False
+
+    array_of_colors[pattern_array] = yellow
     array_of_colors[init_state] = blue
     array_of_colors[walls] = black
-    array_of_colors[pattern_array] = yellow
-
     reward_matrix = world == reward
     array_of_colors[reward_matrix] = red
+    
+    
     _, ax = plt.subplots(1, 1, dpi=100)
     # adding colors
     ax.imshow(array_of_colors, aspect='equal')
@@ -1074,6 +1081,8 @@ def plot_maze(world,
             for j in range(arrows.shape[1]):
                 if walls[i, j] != -1:
                     action = arrows[i, j]
+                    if len(uncertain) > 0 and pattern_array[i,j]:
+                        action = uncertain[i,j]
                     if action == 4:  # Draw a circle
                         circle = plt.Circle((j, i), 0.1,
                                             color='black', fill=True)
@@ -1095,7 +1104,7 @@ def plot_maze(world,
         for j in range(0, labels.shape[1]):
             c = labels[j, i]
             ax.text(i, j, str(c), va='center', ha='center')
-    major_ticks = np.arange(-0.5, 7.5)
+    major_ticks = np.arange(-0.5, size[0] +0.5)
     ax.set_xticks(major_ticks)
     ax.set_yticks(major_ticks)
     ax.grid(True, alpha=1, color='black', linewidth=1)

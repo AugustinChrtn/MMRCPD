@@ -1139,6 +1139,7 @@ agents_to_test = ['VI_softmax',
                   'SoftmaxFiniteHorizon10',
                   'SoftmaxFiniteHorizon5',
                   'SoftmaxFiniteHorizon20',
+                  'SoftmaxFiniteHorizon',
                   'SoftmaxMultiModel']
 
 # agents_to_test = ['VI_softmax',
@@ -1158,7 +1159,7 @@ env_parameters = []
 #                            'conds': ['', '_C']})
 
 env_to_test = 'PartiallyChangingCrossEnvironment'
-for i in range(10):
+for i in range(5):
     env_parameters.append({'number': i,
                            'step_change': 2000,
                            'conds': ['', '_D'],
@@ -1167,7 +1168,7 @@ for i in range(10):
 
 
 starting_seed = generate_seed(17)
-nb_tests = 5
+nb_tests = 1
 nb_proc = 11
 
 # Parameters agents
@@ -1177,7 +1178,7 @@ params_shared = {"threshold_VI": 1e-3,
                  "beta": 3,
                  "gamma": 0.95}
 
-params_finite_horizon = {'horizon': 10}
+params_finite_horizon = {'horizon': 30}
 
 params_multi_model = {"horizon": 10,
                       "kl_threshold": 1.,

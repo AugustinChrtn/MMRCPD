@@ -549,11 +549,15 @@ def generate_optimal_policies(number=20):
         # transitions_U = np.load('Env/Transitions/Transitions_'+str(i)+'_U.npy')
         _, optimal_policy = value_iteration(i, cond='')
         _, optimal_policy_C = value_iteration(i, cond='_C')
+        _, optimal_policy_D = value_iteration(i,cond='_D')
         path = 'Env/Optimal_policy/World_'+str(i)+'.pdf'
-        path_U = 'Env/Optimal_policy/World_'+str(i)+'_C.pdf'
+        path_C = 'Env/Optimal_policy/World_'+str(i)+'_C.pdf'
+        path_U = 'Env/Optimal_policy/World_'+str(i)+'_U.pdf'
         # print(optimal_policy)
         plot_maze(world, path, arrows=optimal_policy)
-        plot_maze(world, path_U, arrows=optimal_policy_C)
+        plot_maze(world, path_C, arrows=optimal_policy_C)
+        plot_maze(world, path_U, arrows=optimal_policy, 
+                  uncertain=optimal_policy_D)
 
 
 def generate_all(number=10):
