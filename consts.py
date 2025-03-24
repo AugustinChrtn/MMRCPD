@@ -34,12 +34,13 @@ colors = {'VI_softmax': 'gray',
           'SoftmaxFiniteHorizon10': 'red',
           'SoftmaxFiniteHorizon5': 'orange',
           'SoftmaxFiniteHorizon20': 'green',
-
+          'SoftmaxFiniteHorizon3': 'pink',
+          'SoftmaxFiniteHorizon30': 'pink',
 
           'SoftmaxMultiModel': 'blue',
 
 
-            'Baseline': 'blue',
+          'Baseline': 'blue',
           'MMLowKL': 'red',
           'MMHighKL': 'orange',
           'MMLowHorizon': 'gray',
@@ -68,25 +69,26 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'reward': 'Reward',
 
           'SoftmaxFiniteHorizon': 'Finite Horizon',
+          'SoftmaxFiniteHorizon3': 'Finite Horizon h=3',
           'SoftmaxFiniteHorizon5': 'Finite Horizon h=5',
           'SoftmaxFiniteHorizon10': 'Finite Horizon h=10',
           'SoftmaxFiniteHorizon20': 'Finite Horizon h=20',
-
+          'SoftmaxFiniteHorizon30': 'Finite Horizon h=30',
 
           'SoftmaxMultiModel': 'Multi Model',
           'Baseline': 'Baseline',
 
-          'MMLowKL': 'High Creation',
-          'MMHighKL': 'Low Creation',
-          'MMLowHorizon': 'Short Horizon',
-          'MMHighHorizon': 'Long Horizon',
-          'MMHighHorizonLowKL': 'Long Horizon High Creation',
+          'MMLowKL': 'High Creation Δc=0.3',
+          'MMHighKL': 'Low Creation Δc=1.5',
+          'MMLowHorizon': 'Short Horizon h=3',
+          'MMHighHorizon': 'Long Horizon h=20',
+          'MMHighHorizonLowKL': 'Long Horizon High Creation h=20 Δc=0.3',
 
 
-          'MMLowMerging': 'High Creation Low Merging',
-          'MMHighMerging': 'High Creation High Merging',
-          'MMForget': 'High Creation No Merging Low Memory',
-          'MMNoMerging': 'High Creation No Merging',
+          'MMLowMerging': 'Low Merging Δc=0.3 Δm=0.01',
+          'MMHighMerging': 'High Merging Δc=0.3 Δm=0.5',
+          'MMForget': 'No Merging Low Memory Δc=0.3 Δm=0 maxMod=2',
+          'MMNoMerging': 'No Merging Δc=0.3 Δm=0',
 
 
 
@@ -103,11 +105,13 @@ labels = {'VI_softmax': 'Infinite Horizon',
 
 smoothing_factors = {'VI_softmax': 1e10,
                      'SoftmaxFiniteHorizon': 1e10,
+                     'SoftmaxFiniteHorizon3': 1e10,
                      'SoftmaxFiniteHorizon5': 1e10,
                      'SoftmaxFiniteHorizon10': 1e10,
                      'SoftmaxFiniteHorizon20': 1e10,
+                     'SoftmaxFiniteHorizon30': 1e10,
                      'SoftmaxMultiModel': 1e10,
-                    'Baseline':1e10,
+                     'Baseline': 1e10,
                      'MMLowKL': 1e10,
                      'MMHighKL': 1e10,
                      'MMLowHorizon': 1e10,
@@ -117,17 +121,6 @@ smoothing_factors = {'VI_softmax': 1e10,
                      'MMHighMerging': 1e10,
                      'MMForget': 1e10,
                      'MMNoMerging': 1e10,
-
-
-
-                     'RmaxExploration': 'MM + Nov + Sur',
-                     'RmaxContext': 'MM + Nov + Sur + Cov',
-                     'RmaxNovelty': 'MM + Nov',
-                     'ThompsonBernouilli': 'Thompson',
-                     'ThompsonBernouilliFiniteHorizon': 'ThompsonFiniteHorizon',
-
-
-
 
                      'RmaxContext': 1e10,
                      'RmaxExploration': 1e10,

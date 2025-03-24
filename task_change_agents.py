@@ -712,7 +712,6 @@ class MBMultiModel():
         count1 = self.all_nSAS[ind1][old_state][action].copy()
         count2 = self.all_nSAS[ind2][old_state][action].copy()
 
-        # print(count1, count2)
         norm1 = self.all_nSA[ind1][old_state][action]
         norm2 = self.all_nSA[ind2][old_state][action]
 

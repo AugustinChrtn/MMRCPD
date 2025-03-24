@@ -896,18 +896,19 @@ def get_all_plot(results, parameters, legend=True):
     #             nb_iters=nb_iters,
     #             change_rate=change_rate,
     #             steps=steps,
-    #             ylabel='Best Euclidian distance to the true transitions',
+    #             ylabel='Best Euclidean distance to the true transitions',
     #             title=agent+title,
     #             legend=legend)
-    plot_avg_over_time(all_current_models,
-                       steps,
-                       trials,
-                       change_rate,
-                       nb_iters,
-                       ylabel='Number of models',
-                       title="Number of models"+title,
-                       legend=legend)
-    if "ThreeStates" == env_tested or "MAB" == env_tested:
+    if len(all_current_models.keys()) > 0 :
+        plot_avg_over_time(all_current_models,
+                        steps,
+                        trials,
+                        change_rate,
+                        nb_iters,
+                        ylabel='Number of models',
+                        title="Number of models"+title,
+                        legend=legend)
+    if env_tested in ["ThreeStates", "FourStates", "MAB"] :
         event = 'steps'
     else:
         event = 'trials'
@@ -918,7 +919,7 @@ def get_all_plot(results, parameters, legend=True):
                        trials,
                        change_rate,
                        nb_iters,
-                       ylabel='Euclidian distance',
+                       ylabel='Euclidean distance',
                        title="Current_distance_over_time"+title,
                        legend=legend)
 
@@ -927,7 +928,7 @@ def get_all_plot(results, parameters, legend=True):
                        trials,
                        change_rate,
                        nb_iters,
-                       ylabel='Euclidian distance',
+                       ylabel='Euclidean distance',
                        title="Current_distance_over_time"+title,
                        legend=legend)
 
@@ -980,15 +981,16 @@ def get_all_plot(results, parameters, legend=True):
               title,
               xlabel=xlabel)
 
-    plot_four_models(all_current_models,
-                     all_models_created,
-                     all_models_merged,
-                     all_models_forgotten,
-                     steps,
-                     trials,
-                     change_rate,
-                     nb_iters,
-                     title)
+    if len(all_current_models.keys()) > 0 :
+        plot_four_models(all_current_models,
+                        all_models_created,
+                        all_models_merged,
+                        all_models_forgotten,
+                        steps,
+                        trials,
+                        change_rate,
+                        nb_iters,
+                        title)
 
     for no_legend in [True, False]:
         plot_two(all_rewards,
@@ -1006,7 +1008,7 @@ def get_all_plot(results, parameters, legend=True):
                  trials,
                  change_rate,
                  nb_iters,
-                 ylabel='Euclidian distance to true model',
+                 ylabel='Euclidean distance',
                  title='distance_sum_up'+title+str(no_legend),
                  xlabel=xlabel,
                  legend=no_legend)

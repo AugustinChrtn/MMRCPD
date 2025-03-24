@@ -429,36 +429,74 @@ class ThreeStates:
         self.initial_state = 0
         self.agent_state = self.initial_state
 
+        # transitions_left = np.zeros((self.number_states, self.number_states))
+        # transitions_right = np.zeros((self.number_states, self.number_states))
+        # # transitions_left[0,1] = self.slip
+        # # transitions_left[0,2] = 1-self.slip
+        # # transitions_right[0,1] = 1-self.slip
+        # # transitions_right[0,2] = self.slip
+
+        # transitions_left[0, 1] = 0
+        # transitions_left[0, 2] = 1
+        # transitions_right[0, 1] = 1
+        # transitions_right[0, 2] = 0
+
+        # # transitions_left[0,1] = 1
+        # # transitions_left[0,2] = 0
+        # # transitions_right[0,1] = 0.99
+        # # transitions_right[0,2] = 0.01
+
+        # # Staying in position
+        # transitions_left[1, 1] = 1
+        # transitions_right[1, 1] = 1
+
+        # transitions_left[2, 2] = 1
+        # transitions_right[2, 2] = 1
+
+        # transitions = np.zeros((self.number_states,
+        #                         self.number_actions,
+        #                         self.number_states))
+        # transitions[:, 0, :] = transitions_left
+        # transitions[:, 1, :] = transitions_right
+        # self.transitions = transitions
+        self.update_probas()
+
+    def update_probas(self):
         transitions_left = np.zeros((self.number_states, self.number_states))
         transitions_right = np.zeros((self.number_states, self.number_states))
-        # transitions_left[0,1] = self.slip
-        # transitions_left[0,2] = 1-self.slip
-        # transitions_right[0,1] = 1-self.slip
-        # transitions_right[0,2] = self.slip
 
-        transitions_left[0, 1] = 0
-        transitions_left[0, 2] = 1
-        transitions_right[0, 1] = 1
-        transitions_right[0, 2] = 0
+        transitions_left[0, 2] = self.slip
+        transitions_left[0, 1] = 1-self.slip
+        transitions_right[0, 2] = 1-self.slip
+        transitions_right[0, 1] = self.slip
 
-        # transitions_left[0,1] = 1
-        # transitions_left[0,2] = 0
-        # transitions_right[0,1] = 0.99
-        # transitions_right[0,2] = 0.01
 
-        transitions_left[1:, 0] = 1
-        transitions_right[1:, 0] = 1
+        # transitions_left[0, 2] = self.probas[self.cond][0]
+        # transitions_left[0, 1] = 1-self.probas[self.cond][0]
+        # transitions_right[0, 2] = self.probas[self.cond][1]
+        # transitions_right[0, 1] = 1-self.probas[self.cond][1]
+
+        # Staying in position
+        transitions_left[1, 1] = 1
+        transitions_right[1, 1] = 1
+
+        transitions_left[2, 2] = 1
+        transitions_right[2, 2] = 1
 
         transitions = np.zeros((self.number_states,
                                 self.number_actions,
                                 self.number_states))
+
         transitions[:, 0, :] = transitions_left
         transitions[:, 1, :] = transitions_right
         self.transitions = transitions
+        # print(self.transitions)
+
 
     def new_episode(self):
         if self.step % (self.step_change) == 0:
             self.slip = 1-self.slip
+            self.update_probas()
 
         # transitions_left = self.transitions[:,0,:].copy()
         # transitions_right = self.transitions[:,1,:].copy()
@@ -470,16 +508,16 @@ class ThreeStates:
 
     def make_step(self, action):
         self.step += 1
-        if np.random.random() < self.slip:
-            action = (action+1) % 2
+        # if np.random.random() < self.slip:
+        #     action = (action+1) % 2
 
         transition_probas = self.transitions[self.agent_state][action]
         self.agent_state = np.random.choice(self.states, p=transition_probas)
 
         # Unfrequent reward
         if self.uncertain:
-            if self.agent_state == 2 and np.random.random() < 0.05:
-                reward = 20
+            if self.agent_state == 2 and np.random.random() < 0.1:
+                reward = 10
             else:
                 reward = 0
 
@@ -558,6 +596,91 @@ class DiffThreeStates:
 
         else:
             reward = self.rewards[self.agent_state]
+        return reward, self.agent_state
+    
+
+
+
+class FourStates:
+
+    def __init__(self, step_change=2000, uncertain=False, slip=0.1):
+
+        self.slip = slip
+        self.step_change = step_change
+        self.uncertain = uncertain
+        self.swap = False
+
+        self.number_states = 4
+        self.number_actions = 2
+        self.states = np.arange(self.number_states)
+        self.actions = np.arange(self.number_actions)
+        self.step = 0
+
+
+        self.initial_state = 0
+        self.agent_state = self.initial_state
+        self.cond = 0
+        self.update_probas()
+
+    def update_probas(self, swap=False):
+        transitions_left = np.zeros((self.number_states, self.number_states))
+        transitions_right = np.zeros((self.number_states, self.number_states))
+
+        transitions_left[0, 2] = 1-self.slip
+        transitions_left[0, 3] = self.slip
+        transitions_right[0, 2] = self.slip
+        transitions_right[0, 1] = 1-self.slip
+
+        # Staying in position
+        transitions_left[1, 1] = 1
+        transitions_right[1, 1] = 1
+
+        transitions_left[2, 2] = 1
+        transitions_right[2, 2] = 1
+
+        transitions_left[3, 3] = 1
+        transitions_right[3, 3] = 1
+
+        transitions = np.zeros((self.number_states,
+                                self.number_actions,
+                                self.number_states))
+
+        # transitions[:, 0, :] = transitions_left
+        # transitions[:, 1, :] = transitions_right
+
+        if self.swap : 
+            transitions[:, 0, :] = transitions_left
+            transitions[:, 1, :] = transitions_right
+        else :
+            transitions[:, 0, :] = transitions_right
+            transitions[:, 1, :] = transitions_left
+        self.transitions = transitions
+
+        self.rewards = np.zeros((self.number_states))
+        self.rewards[3] = 10
+
+    def new_episode(self):
+
+        if self.step % (self.step_change) == 0:
+            self.swap = not self.swap
+            self.update_probas()
+
+        self.agent_state = self.initial_state
+
+    def make_step(self, action):
+        self.step += 1
+        transition_probas = self.transitions[self.agent_state][action]
+        self.agent_state = np.random.choice(self.states, p=transition_probas)
+
+        # Unfrequent reward
+        # if self.uncertain:
+        #     if self.agent_state == 2 and np.random.random() < 0.05:
+        #         reward = 20
+        #     else:
+        #         reward = 0
+
+        # else:
+        reward = self.rewards[self.agent_state]
         return reward, self.agent_state
 
 
