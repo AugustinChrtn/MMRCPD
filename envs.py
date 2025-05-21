@@ -326,7 +326,10 @@ class PartiallyChangingCrossEnvironment():
                 new_transitions = self.all_transitions2[self.current_transis[index], state].copy(
                 )
                 self.transitions[state] = new_transitions
-
+            # Putting dummy transitions for walls
+            for state in range(self.number_states):
+                    if np.sum(self.transitions[state])==0:
+                        self.transitions[state,:,state]=1
             self.check_new_model()
         self.agent_state = self.initial_state
 

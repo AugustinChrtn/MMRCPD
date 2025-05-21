@@ -129,16 +129,16 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-# res, param = main_function(agents_to_test,
-#                            env_to_test,
-#                            nb_tests,
-#                            play_parameters,
-#                            starting_seed,
-#                            env_parameters,
-#                            agent_parameters,
-#                            nb_processes=nb_proc)
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
 
-# get_all_plot(res, param)
+get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
@@ -187,16 +187,16 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-# res, param = main_function(agents_to_test,
-#                            env_to_test,
-#                            nb_tests,
-#                            play_parameters,
-#                            starting_seed,
-#                            env_parameters,
-#                            agent_parameters,
-#                            nb_processes=nb_proc)
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
 
-# get_all_plot(res, param)
+get_all_plot(res, param)
 
 # ---------------------------------------------------------------------------- #
 # Four States
@@ -243,16 +243,16 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-# res, param = main_function(agents_to_test,
-#                            env_to_test,
-#                            nb_tests,
-#                            play_parameters,
-#                            starting_seed,
-#                            env_parameters,
-#                            agent_parameters,
-#                            nb_processes=nb_proc)
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
 
-# get_all_plot(res, param)
+get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
@@ -474,16 +474,16 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-res, param = main_function(agents_to_test,
-                           env_to_test,
-                           nb_tests,
-                           play_parameters,
-                           starting_seed,
-                           env_parameters,
-                           agent_parameters,
-                           nb_processes=nb_proc)
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
 
-get_all_plot(res, param)
+# get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
@@ -534,16 +534,16 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-res, param = main_function(agents_to_test,
-                           env_to_test,
-                           nb_tests,
-                           play_parameters,
-                           starting_seed,
-                           env_parameters,
-                           agent_parameters,
-                           nb_processes=nb_proc)
+# res, param = main_function(agents_to_test,
+#                            env_to_test,
+#                            nb_tests,
+#                            play_parameters,
+#                            starting_seed,
+#                            env_parameters,
+#                            agent_parameters,
+#                            nb_processes=nb_proc)
 
-get_all_plot(res, param)
+# get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
@@ -604,16 +604,16 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-# res, param = main_function(agents_to_test,
-#                            env_to_test,
-#                            nb_tests,
-#                            play_parameters,
-#                            starting_seed,
-#                            env_parameters,
-#                            agent_parameters,
-#                            nb_processes=nb_proc)
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
 
-# get_all_plot(res, param)
+get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
@@ -668,13 +668,13 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-# res, param = main_function(agents_to_test,
-#                            env_to_test,
-#                            nb_tests,
-#                            play_parameters,
-#                            starting_seed,
-#                            env_parameters,
-#                            agent_parameters,
-#                            nb_processes=nb_proc)
+res, param = main_function(agents_to_test,
+                           env_to_test,
+                           nb_tests,
+                           play_parameters,
+                           starting_seed,
+                           env_parameters,
+                           agent_parameters,
+                           nb_processes=nb_proc)
 
-# get_all_plot(res, param)
+get_all_plot(res, param)

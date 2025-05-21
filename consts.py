@@ -85,10 +85,10 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'MMHighHorizonLowKL': 'Long Horizon High Creation h=20 Δc=0.3',
 
 
-          'MMLowMerging': 'Low Merging Δc=0.3 Δm=0.01',
-          'MMHighMerging': 'High Merging Δc=0.3 Δm=0.5',
-          'MMForget': 'No Merging Low Memory Δc=0.3 Δm=0 maxMod=2',
-          'MMNoMerging': 'No Merging Δc=0.3 Δm=0',
+          'MMLowMerging': 'Low Merging Δm=0.01',
+          'MMHighMerging': 'High Merging Δm=0.5',
+          'MMForget': 'No Merging Low Memory Δm=0 maxMod=2',
+          'MMNoMerging': 'No Merging Δm=0',
 
 
 
