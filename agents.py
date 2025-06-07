@@ -228,12 +228,7 @@ class FiniteHorizonMB:
             while (not converged and nb_iters < self.max_iterations):
                 nb_iters += 1
                 max_Q = np.max(self.Q, axis=1)
-
-                a = time.time()
                 new_Q = self.R_VI + self.gamma * np.dot(self.tSAS, max_Q)
-                b = time.time()
-                # print("cost_one_comput = "+str(b-a))
-
                 diff = np.abs(self.Q - new_Q)
                 self.Q = new_Q
                 if np.max(diff) < threshold:

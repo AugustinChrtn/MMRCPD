@@ -4,6 +4,7 @@ from task_change_agents import SoftmaxMultiModel, RmaxExploration, RmaxNovelty
 from context_change_agents import RmaxContext
 from envs import ChainProblem, ChangingCrossEnvironment, ThreeStates, MAB, DiffThreeStates, FourStates
 from envs import PartiallyChangingCrossEnvironment
+from rlcd import RLCD
 
 # ---------------------------------------------------------------------------- #
 # Agents definition
@@ -34,7 +35,8 @@ agents = {'VI_softmax': VI_softmax,
           'RmaxExploration': RmaxExploration,
           'RmaxNovelty': RmaxNovelty,
           'ThompsonBernouilli': ThompsonBernouilli,
-          'ThompsonBernouilliFiniteHorizon': ThompsonBernouilliFiniteHorizon
+          'ThompsonBernouilliFiniteHorizon': ThompsonBernouilliFiniteHorizon,
+          'RLCD':RLCD
           }
 
 agent_names = list(agents.keys())

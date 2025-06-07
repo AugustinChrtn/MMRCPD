@@ -64,9 +64,9 @@ def play(environment,
             step += 1
             if step == max_step:
                 game_over = True
-                environment.new_episode()
         time_trial = time.time()-time_init_trial
         time_per_episode.append(time_trial)
+        environment.new_episode()
         reward_per_episode.append(cumulative_reward)
         if multi_model:
             log['nb_model'].append(agent.total_nb_models)

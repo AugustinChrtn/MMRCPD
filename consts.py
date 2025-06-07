@@ -59,6 +59,7 @@ colors = {'VI_softmax': 'gray',
           'RmaxNovelty': 'yellow',
           'ThompsonBernouilli': 'blue',
           'ThompsonBernouilliFiniteHorizon': 'red',
+          'RLCD': 'green',
 
           'nb_model': 'blue',
           'nb_creation': 'red',
@@ -89,7 +90,7 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'MMHighMerging': 'High Merging Δm=0.5',
           'MMForget': 'No Merging Low Memory Δm=0 maxMod=2',
           'MMNoMerging': 'No Merging Δm=0',
-
+          'RLCD': 'Context Detection',
 
 
           'RmaxExploration': 'MM + Nov + Sur',
@@ -133,4 +134,5 @@ smoothing_factors = {'VI_softmax': 1e10,
                      'nb_merging': 1e10,
                      'nb_forgetting': 1e10,
                      'nb_creation': 1e10,
-                     'nb_model': 1e10}
+                     'nb_model': 1e10,
+                     'RLCD':1e10}
