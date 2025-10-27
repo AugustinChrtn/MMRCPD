@@ -86,69 +86,11 @@ def play(environment,
     if multi_model:
         log['creation_per_state'] = agent.creation_per_state
         log['model_per_state'] = agent.model_per_state
-        # from plots import plot_all_distrib_several_models, plot_V
-        # # plot_all_distrib_several_models(environment, agent, nb_min_distrib=2)
-        # policy_table = np.argmax(agent.Q, axis=1)
-        # table = np.max(agent.Q,axis=1)
-        # shape = (7,7)
-        # plot_V(table, policy_table, shape, path='distrib/table.png')
-    # log['policy_value_error']= policy_value_error
-    # np.save(unique_path, log)
-    # from plots import plot_all_distrib_several_models, plot_V
-    # policy_table = np.argmax(agent.Q, axis=1)
-    # table = np.max(agent.Q,axis=1)
-    # shape = (7,7)
-    # plot_V(table, policy_table, shape, path='distrib/'+name_agent+'.png')
-    # print(log['distance_model'])
-    # import matplotlib.pyplot as plt
-    # plt.plot(log['distance_model'])
-    # plt.show()
     return log
 
 
 def compute_current_distance_transition(transi_env, transi_agent):
     return np.sqrt(np.sum((transi_env - transi_agent) ** 2))
-
-# def compute_distance_transitions(transi_env, transi_agent):
-#     distance = []
-#     for (state, action) in transi_env.keys():
-#         mod_env = transi_env[state, action]
-#         mod_agent = transi_agent[state, action]
-#         if len(mod_agent) == 0:
-#             mod_agent = [[0.]*len(mod_env[0])]
-#         mod_env = np.array(mod_env)
-#         mod_agent = np.array(mod_agent)
-#         # distances = cdist(mod_env, mod_agent, metric='euclidean')
-#         distances = np.sqrt(np.sum((mod_env[:, np.newaxis] - mod_agent) ** 2, 
-#                                    axis=2))
-#         min_distances = np.min(distances, axis=1)
-
-#         avg_min_distance = np.mean(min_distances)
-#         # print(avg_min_distance)
-#         distance.append(avg_min_distance)
-
-#     return np.mean(distance)
-
-
-# def play_with_logs(environment, agent, trials=100, max_step=30):
-#     reward_per_episode = []
-#     nb_models = []
-#     for _ in range(trials):
-#         cumulative_reward, step, game_over = 0, 0, False
-#         while not game_over:
-#             old_state = environment.agent_state
-#             action = agent.choose_action(old_state)
-#             reward, new_state = environment.make_step(action)
-#             agent.learn(old_state, reward, new_state, action)
-#             cumulative_reward += reward
-#             step += 1
-#             if step == max_step:
-#                 game_over = True
-#                 environment.new_episode()
-#         reward_per_episode.append(cumulative_reward)
-#         nb_models.append(np.sum(agent.nb_models))
-#     return reward_per_episode, nb_models
-
 
 def get_simulation_to_do(agent_to_test,
                          env_name,
@@ -228,13 +170,18 @@ def main_function(agent_to_test,
                                             starting_seed,
                                             env_parameters,
                                             agent_parameters)
-    pool = Pool(processes=nb_processes)
-    results = pool.map(one_parameter_play_function, every_simulation)
-    pool.close()
-    pool.join()
     logs = {}
-    for result in results:
-        logs[result[0]] = result[1]
+    if nb_processes > 1 : 
+        pool = Pool(processes=nb_processes)
+        results = pool.map(one_parameter_play_function, every_simulation)
+        pool.close()
+        pool.join()
+        for result in results:
+            logs[result[0]] = result[1]
+    else : 
+        for simulation in every_simulation:
+            trial_name, result = one_parameter_play_function(simulation)
+            logs[trial_name] = result
     time_after = time.time()
     print('Computation time: '+str(time_after - time_before))
     title = str(time_before)

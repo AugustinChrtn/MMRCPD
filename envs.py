@@ -88,6 +88,8 @@ class ChainProblem:
                 self.total_change()
             elif change == 'S':
                 self.change_random_transition()
+            elif change == 'T minus S':
+                self.change_all_but_one()
             elif 0 <= change <= 1:
                 self.slip_change(change)
             else:
@@ -103,6 +105,16 @@ class ChainProblem:
         tmp_transitions = self.transitions[:, 0].copy()
         self.transitions[:, 0] = self.transitions[:, 1].copy()
         self.transitions[:, 1] = tmp_transitions
+
+    def change_all_but_one(self):
+        not_changing = np.random.randint(self.number_states)
+        not_changing_transi = self.transitions[not_changing, :].copy()
+
+        tmp_transitions = self.transitions[:, 0].copy()
+        self.transitions[:, 0] = self.transitions[:, 1].copy()
+        self.transitions[:, 1] = tmp_transitions
+
+        self.transitions[not_changing]=not_changing_transi
 
     def change_random_transition(self):
         # Invert the transition matrix for one random state

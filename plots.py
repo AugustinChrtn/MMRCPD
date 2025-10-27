@@ -1,8 +1,6 @@
 from const_grid import pattern
-from check_significance import get_stats
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import time
 import os
 import glob
@@ -232,52 +230,6 @@ def plot_time(times,
     plt.savefig('results/total_times'+title+'.pdf')
     plt.close()
 
-# def plot_non_stat(rewards,
-#                   change_rate,
-#                   steps,
-#                   nb_models=[],
-#                   avg_size=100,
-#                   ylabel='Reward',
-#                   xlabel='Trial'):
-#     basic_plot(rewards,
-#                save=False,
-#                avg_size=avg_size,
-#                color='tab:blue')
-#     if nb_models != []:
-#         basic_plot(nb_models,
-#                    save=False,
-#                    avg_size=avg_size,
-#                    legend='nb_models',
-#                    ylabel=ylabel,
-#                    xlabel=xlabel,
-#                    color='tab:red')
-#     nb_changes = int(len(rewards)*steps/change_rate)
-#     left = (len(rewards)*steps % change_rate)/steps
-#     for i in range(nb_changes-1):
-#         plt.axvline(x=(len(rewards)-int(left))*(i+1)/nb_changes,
-#                     linestyle='--',
-#                     color='black',
-#                     alpha=0.5)
-#     plt.legend()
-#     plt.savefig('plots/results'+str(time.time())+'.png')
-#     plt.close()
-
-
-# def double_plot(rewards1, rewards2):
-#     index_avg = [i * len(rewards1) // 200 for i in range(200)]
-#     moving_average_rewards = [np.mean(rewards1[index_avg[index]:index_avg[index + 1]])
-#                               for index in range(len(index_avg) - 1)]
-#     moving_average_rewards2 = [np.mean(rewards2[index_avg[index]:index_avg[index + 1]])
-#                                for index in range(len(index_avg) - 1)]
-#     plt.grid()
-#     plt.plot(index_avg[: -1], moving_average_rewards,
-#              color='tab:blue', linewidth=3)
-#     plt.plot(index_avg[: -1], moving_average_rewards2,
-#              color='tab:red', linewidth=3)
-#     plt.ylabel('Reward', fontsize=12)
-#     plt.xlabel('Trial', fontsize=12)
-#     plt.savefig('plots/double_results.png')
-
 
 # ---------------------------------------------------------------------------- #
 # 2D Plots
@@ -292,6 +244,7 @@ def get_max_Q_values_and_policy(table):
 
 
 def plot_2D(table, shape):
+    import seaborn as sns
     table = np.reshape(table, shape)
     sns.heatmap(table,
                 cmap='Blues',

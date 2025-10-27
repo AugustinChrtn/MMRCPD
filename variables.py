@@ -1,7 +1,5 @@
-from agents import SoftmaxFiniteHorizon, VI_softmax, SoftmaxFiniteHorizon2
-from agents import ThompsonBernouilli, ThompsonBernouilliFiniteHorizon
-from task_change_agents import SoftmaxMultiModel, RmaxExploration, RmaxNovelty
-from context_change_agents import RmaxContext
+from agents import SoftmaxFiniteHorizon, VI_softmax
+from task_change_agents import SoftmaxMultiModel
 from envs import ChainProblem, ChangingCrossEnvironment, ThreeStates, MAB, DiffThreeStates, FourStates
 from envs import PartiallyChangingCrossEnvironment
 from rlcd import RLCD
@@ -30,12 +28,6 @@ agents = {'VI_softmax': VI_softmax,
           'MMHighMerging': SoftmaxMultiModel,
           'MMForget': SoftmaxMultiModel,
           'MMNoMerging': SoftmaxMultiModel,
-
-          'RmaxContext': RmaxContext,
-          'RmaxExploration': RmaxExploration,
-          'RmaxNovelty': RmaxNovelty,
-          'ThompsonBernouilli': ThompsonBernouilli,
-          'ThompsonBernouilliFiniteHorizon': ThompsonBernouilliFiniteHorizon,
           'RLCD':RLCD
           }
 
