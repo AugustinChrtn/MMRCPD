@@ -1,0 +1,8 @@
+name: multimodel_chartounyetal
+channels:
+  - defaults
+dependencies:
+  - python
+  - matplotlib
+  - numpy
+  - seaborn

@@ -86,7 +86,7 @@ def generate_seed(number_of_the_experiment):
 # Experiments
 # ---------------------------------------------------------------------------- #
 # Indicate all the experiments you would like to launch (check below)
-experiments_to_launch = [i for i in range(11,17)]
+experiments_to_launch = [1,16]
 
 # ---------------------------------------------------------------------------- #
 # Three States environment

@@ -1,4 +1,4 @@
-from const_grid import pattern
+from const_maze import pattern
 import matplotlib.pyplot as plt
 import numpy as np
 import time

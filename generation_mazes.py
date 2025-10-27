@@ -1,6 +1,6 @@
 import numpy as np
-from const_grid import reward_distance, wall_rate, size
-from const_grid import pattern, reward_value
+from const_maze import reward_distance, wall_rate, size
+from const_maze import pattern, reward_value
 from plots import plot_maze, plot_one_transition
 import sys
 sys.setrecursionlimit(5000)
