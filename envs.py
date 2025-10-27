@@ -444,36 +444,6 @@ class ThreeStates:
         self.initial_state = 0
         self.agent_state = self.initial_state
 
-        # transitions_left = np.zeros((self.number_states, self.number_states))
-        # transitions_right = np.zeros((self.number_states, self.number_states))
-        # # transitions_left[0,1] = self.slip
-        # # transitions_left[0,2] = 1-self.slip
-        # # transitions_right[0,1] = 1-self.slip
-        # # transitions_right[0,2] = self.slip
-
-        # transitions_left[0, 1] = 0
-        # transitions_left[0, 2] = 1
-        # transitions_right[0, 1] = 1
-        # transitions_right[0, 2] = 0
-
-        # # transitions_left[0,1] = 1
-        # # transitions_left[0,2] = 0
-        # # transitions_right[0,1] = 0.99
-        # # transitions_right[0,2] = 0.01
-
-        # # Staying in position
-        # transitions_left[1, 1] = 1
-        # transitions_right[1, 1] = 1
-
-        # transitions_left[2, 2] = 1
-        # transitions_right[2, 2] = 1
-
-        # transitions = np.zeros((self.number_states,
-        #                         self.number_actions,
-        #                         self.number_states))
-        # transitions[:, 0, :] = transitions_left
-        # transitions[:, 1, :] = transitions_right
-        # self.transitions = transitions
         self.update_probas()
 
     def update_probas(self):
@@ -484,12 +454,6 @@ class ThreeStates:
         transitions_left[0, 1] = 1-self.slip
         transitions_right[0, 2] = 1-self.slip
         transitions_right[0, 1] = self.slip
-
-
-        # transitions_left[0, 2] = self.probas[self.cond][0]
-        # transitions_left[0, 1] = 1-self.probas[self.cond][0]
-        # transitions_right[0, 2] = self.probas[self.cond][1]
-        # transitions_right[0, 1] = 1-self.probas[self.cond][1]
 
         # Staying in position
         transitions_left[1, 1] = 1
@@ -505,7 +469,6 @@ class ThreeStates:
         transitions[:, 0, :] = transitions_left
         transitions[:, 1, :] = transitions_right
         self.transitions = transitions
-        # print(self.transitions)
 
 
     def new_episode(self):
@@ -513,18 +476,10 @@ class ThreeStates:
             self.slip = 1-self.slip
             self.update_probas()
 
-        # transitions_left = self.transitions[:,0,:].copy()
-        # transitions_right = self.transitions[:,1,:].copy()
-
-        # self.transitions[:,0,:] = transitions_right
-        # self.transitions[:,1,:] = transitions_left
-
         self.agent_state = self.initial_state
 
     def make_step(self, action):
         self.step += 1
-        # if np.random.random() < self.slip:
-        #     action = (action+1) % 2
 
         transition_probas = self.transitions[self.agent_state][action]
         self.agent_state = np.random.choice(self.states, p=transition_probas)
@@ -660,9 +615,6 @@ class FourStates:
                                 self.number_actions,
                                 self.number_states))
 
-        # transitions[:, 0, :] = transitions_left
-        # transitions[:, 1, :] = transitions_right
-
         if self.swap : 
             transitions[:, 0, :] = transitions_left
             transitions[:, 1, :] = transitions_right
@@ -687,14 +639,6 @@ class FourStates:
         transition_probas = self.transitions[self.agent_state][action]
         self.agent_state = np.random.choice(self.states, p=transition_probas)
 
-        # Unfrequent reward
-        # if self.uncertain:
-        #     if self.agent_state == 2 and np.random.random() < 0.05:
-        #         reward = 20
-        #     else:
-        #         reward = 0
-
-        # else:
         reward = self.rewards[self.agent_state]
         return reward, self.agent_state
 
@@ -743,7 +687,6 @@ class TwoStepTask:
 
     def change_of_task(self):
         if self.step % (50*1500) == 0:
-            # print('Total Task change')
             # Invert the two actions
             self.transitions[:, 0], self.transitions[:,
                                                      1] = self.transitions[:, 1], self.transitions[:, 0].copy()
@@ -786,10 +729,7 @@ class MAB:
                                                        self.number_actions))
 
         for i in range(self.number_of_situations):
-            # print(np.shape(self.all_means))
             self.all_means[i, :, i] = 1
-
-        # print(self.all_means, self.all_stds)
 
         self.current_situation = 0
         self.means = self.all_means[self.current_situation]

@@ -2,21 +2,7 @@ from variables import envs, agents
 from multiprocessing import Pool
 from consts import multi_model_agents
 import numpy as np
-import os
 import time
-
-# Function to save a file as the first non-indexed number
-
-
-def uniquify(path):
-    filename, extension = os.path.splitext(path)
-    counter = 1
-    while os.path.exists(path):
-        path = filename + "(" + str(counter) + ")" + extension
-        counter += 1
-
-    return path, counter
-
 
 def play(environment,
          agent,
@@ -34,17 +20,13 @@ def play(environment,
                'nb_creation': [],
                'nb_forgetting': [],
                'nb_merging': []}
-
-    env_name = environment.__class__.__name__
-
-    # log['distance_model'] = []
     log['distance_current_model'] = []
 
     start_time = time.time()
     reward_per_episode = []
     time_per_episode = []
 
-    for trial in range(trials):
+    for _ in range(trials):
         cumulative_reward, step, game_over, time_trial = 0, 0, False, 0
 
         mod_agent = agent.tSAS
@@ -73,11 +55,6 @@ def play(environment,
             log['nb_creation'].append(agent.total_creation)
             log['nb_forgetting'].append(agent.total_forgetting)
             log['nb_merging'].append(agent.total_merging)
-
-        # mod_agent = agent.get_all_transitions()
-        # mod_env = environment.all_transitions
-        # distance = compute_distance_transitions(mod_env, mod_agent)
-        # log["distance_model"].append(distance)
 
     end_time = time.time()
     log['reward'] = reward_per_episode

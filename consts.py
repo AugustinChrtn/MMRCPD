@@ -53,12 +53,6 @@ colors = {'VI_softmax': 'gray',
           'MMForget': 'brown',
           'MMNoMerging': 'purple',
 
-
-          'RmaxExploration': 'pink',
-          'RmaxContext': 'green',
-          'RmaxNovelty': 'yellow',
-          'ThompsonBernouilli': 'blue',
-          'ThompsonBernouilliFiniteHorizon': 'red',
           'RLCD': 'green',
 
           'nb_model': 'blue',
@@ -92,13 +86,6 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'MMNoMerging': 'No Merging Δm=0',
           'RLCD': 'Context Detection',
 
-
-          'RmaxExploration': 'MM + Nov + Sur',
-          'RmaxContext': 'MM + Nov + Sur + Cov',
-          'RmaxNovelty': 'MM + Nov',
-          'ThompsonBernouilli': 'Thompson',
-          'ThompsonBernouilliFiniteHorizon': 'ThompsonFiniteHorizon',
-
           'nb_model': 'Number of models',
           'nb_creation': 'Number of models created',
           'nb_merging': 'Number of models merged',
@@ -122,13 +109,7 @@ smoothing_factors = {'VI_softmax': 1e10,
                      'MMHighMerging': 1e10,
                      'MMForget': 1e10,
                      'MMNoMerging': 1e10,
-
-                     'RmaxContext': 1e10,
-                     'RmaxExploration': 1e10,
-                     'RmaxNovelty': 1e10,
-                     'ThompsonBernouilli': 1e10,
-                     'ThompsonBernouilliFiniteHorizon': 1e10,
-
+                     
                      'reward': 1e10,
 
                      'nb_merging': 1e10,

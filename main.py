@@ -86,7 +86,7 @@ def generate_seed(number_of_the_experiment):
 # Experiments
 # ---------------------------------------------------------------------------- #
 # Indicate all the experiments you would like to launch (check below)
-experiments_to_launch = []
+experiments_to_launch = [i for i in range(11,17)]
 
 # ---------------------------------------------------------------------------- #
 # Three States environment
@@ -101,7 +101,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(0)
-nb_tests = 50
+nb_tests = 1
 nb_proc = 10
 
 
@@ -161,7 +161,7 @@ env_parameters = [{"slip": 0.1,
                    "step_change": 50,
                    "uncertain": True}]
 
-nb_tests = 500
+nb_tests = 1
 
 # Agents
 agents_to_test = ['VI_softmax',
@@ -215,7 +215,7 @@ env_parameters = [{"step_change": 50,
 
 
 starting_seed = generate_seed(0)
-nb_tests = 500
+nb_tests = 1
 nb_proc = 10
 
 
@@ -275,7 +275,7 @@ play_parameters = {'trials': 2000,
 env_parameters = [{"slip": 0.1,
                    "step_change": 50,
                    "uncertain": False}]
-nb_tests = 200
+nb_tests = 1
 
 # Agents
 agents_to_test = ['VI_softmax',
@@ -331,7 +331,7 @@ play_parameters = {'trials': 2000,
 env_parameters = [{"slip": 0.,
                    "step_change": 50,
                    "uncertain": False}]
-nb_tests = 200
+nb_tests = 1
 
 # Agents
 agents_to_test = ['VI_softmax',
@@ -396,7 +396,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(2)
-nb_tests = 100
+nb_tests = 1
 
 
 nb_proc = 10
@@ -458,7 +458,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(1000)
-nb_tests = 100
+nb_tests = 1
 
 
 nb_proc = 10
@@ -518,7 +518,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(1001)
-nb_tests = 100
+nb_tests = 1
 
 
 nb_proc = 10
@@ -588,7 +588,7 @@ for i in range(10):
 
 
 starting_seed = generate_seed(17)
-nb_tests = 5
+nb_tests = 1
 nb_proc = 10
 
 # Parameters agents
@@ -643,7 +643,7 @@ play_parameters = {'trials': 1000,
 env_parameters = []
 
 env_to_test = 'PartiallyChangingCrossEnvironment'
-for i in range(10):
+for i in range(1):
     env_parameters.append({'number': i,
                            'step_change': 2000,
                            'conds': ['', '_D'],
@@ -652,7 +652,7 @@ for i in range(10):
 
 
 starting_seed = generate_seed(17)
-nb_tests = 5
+nb_tests = 2
 nb_proc = 10
 
 # Parameters agents
@@ -706,7 +706,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(2)
-nb_tests = 20
+nb_tests = 1
 nb_proc = 10
 
 # Parameters agents
@@ -763,7 +763,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(2)
-nb_tests = 20
+nb_tests = 1
 nb_proc = 10
 
 # Parameters agents
@@ -821,7 +821,7 @@ env_parameters = [{"slip": 0.1,
 
 
 starting_seed = generate_seed(2)
-nb_tests = 20
+nb_tests = 1
 nb_proc = 10
 
 # Parameters agents
@@ -883,7 +883,7 @@ for i in range(10):
 
 
 starting_seed = generate_seed(17)
-nb_tests = 2
+nb_tests = 1
 nb_proc = 10
 
 # Parameters agents
@@ -945,7 +945,7 @@ for i in range(3):
 
 
 starting_seed = generate_seed(17)
-nb_tests = 2
+nb_tests = 1
 nb_proc = 10
 
 # Parameters agents
@@ -998,7 +998,7 @@ env_parameters = [{"step_change": 50,
 
 
 starting_seed = generate_seed(0)
-nb_tests = 200
+nb_tests = 1
 nb_proc = 10
 
 
