@@ -2,10 +2,12 @@
 plots/
 data/
 distrib/
-results/
 tests/
 .vscode
-!/results/README.md
+results/*.svg
+results/*.npy
+results/*.pdf
+results/*.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
