@@ -1,4 +1,6 @@
 from const_maze import pattern
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import time
