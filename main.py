@@ -87,23 +87,27 @@ def generate_seed(number_of_the_experiment):
 # ---------------------------------------------------------------------------- #
 # Indicate all the experiments you would like to launch (check below)
 experiments_to_launch = [1]
+# Indicate the number of processors you would like to use
+nb_proc = 10
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 1 - Basic task
+# One-step environments
+# ---------------------------------------------------------------------------- #
+
+# ---------------------------------------------------------------------------- #
+# Exp 1 - Three states - Volatile variation
 # ---------------------------------------------------------------------------- #
 nb_exp = 1
+starting_seed = generate_seed(nb_exp)
+nb_tests = 500
+
+# Environment
 env_to_test = 'ThreeStates'
 play_parameters = {'trials': 2000,
                    'max_step': 1}
+
 env_parameters = [{"slip": 0.1,
                    "step_change": 50}]
-
-
-starting_seed = generate_seed(0)
-nb_tests = 1
-nb_proc = 10
-
 
 # Agents
 agents_to_test = ['VI_softmax',
@@ -133,7 +137,7 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -143,69 +147,46 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
                                agent_parameters,
                                nb_processes=nb_proc)
 
-    get_all_plot(res, param)
+    get_all_plot(res, param, suptitle='Volatile Variation')
 
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 2 - uncertain reward
+# Exp 2 - Four States - Uncertain transition
 # ---------------------------------------------------------------------------- #
 nb_exp = 2
-starting_seed = generate_seed(1)
-env_to_test = 'ThreeStates'
+nb_tests = 2000
+starting_seed = generate_seed(nb_exp)
+env_to_test = 'FourStates'
 
-play_parameters = {'trials': 2000,
+play_parameters = {'trials': 200,
                    'max_step': 1}
 
-env_parameters = [{"slip": 0.1,
-                   "step_change": 50,
-                   "uncertain": True}]
-
-nb_tests = 1
-
-# Agents
-agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon3',
-                  'SoftmaxFiniteHorizon5',
-                  'SoftmaxFiniteHorizon10',
-                  'SoftmaxFiniteHorizon20',
-                  'SoftmaxMultiModel']
-
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 10,
-                 "gamma": 0.95}
-
-params_finite_horizon = {'horizon': 5}
-
-params_multi_model = {"horizon": 5,
-                      "kl_threshold": 0.3,
-                      "merging_threshold": 0.3,
-                      "delay": 1,
-                      "nb_max_models": 5}
+env_parameters = [{"step_change": None,
+                   'slip': 0.1}]
 
 agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
 
-    get_all_plot(res, param)
+    get_all_plot(res, param, suptitle='Uncertain Variation')
 
 # ---------------------------------------------------------------------------- #
-# Four States
-# Exp 3 - Uncertain transition
+# Exp 3 - Four States - Volatile Uncertain transition
 # ---------------------------------------------------------------------------- #
 nb_exp = 3
+nb_tests = 500
+starting_seed = generate_seed(nb_exp)
+
 env_to_test = 'FourStates'
 play_parameters = {'trials': 2000,
                    'max_step': 1}
@@ -214,31 +195,131 @@ env_parameters = [{"step_change": 50,
                    'slip': 0.1}]
 
 
-starting_seed = generate_seed(0)
+agent_parameters = set_param_agent(params_shared,
+                                   params_finite_horizon,
+                                   params_multi_model)
+
+if nb_exp in experiments_to_launch and __name__ == '__main__':
+    res, param = main_function(agents_to_test,
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
+
+    get_all_plot(res, param, suptitle='Uncertain and Volatile variation')
+
+# ---------------------------------------------------------------------------- #
+# Exp 4 - Three states - Uncertain reward
+# ---------------------------------------------------------------------------- #
+nb_exp = 4
+nb_tests = 2000
+starting_seed = generate_seed(nb_exp)
+
+play_parameters = {'trials': 200,
+                   'max_step': 1}
+
+env_parameters = [{"slip": 0.1,
+                   "step_change": None,
+                   "uncertain": True}]
+
+agent_parameters = set_param_agent(params_shared,
+                                   params_finite_horizon,
+                                   params_multi_model)
+
+if nb_exp in experiments_to_launch and __name__ == '__main__':
+    res, param = main_function(agents_to_test,
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
+
+    get_all_plot(res, param, suptitle='Uncertain variation')
+
+
+# ---------------------------------------------------------------------------- #
+# Exp 5 - Four States - Volatile Uncertain reward
+# ---------------------------------------------------------------------------- #
+nb_exp = 5
+nb_tests = 10
+starting_seed = generate_seed(nb_exp)
+
+env_to_test = 'ThreeStates'
+play_parameters = {'trials': 2000,
+                   'max_step': 1}
+
+env_parameters = [{"step_change": 50,
+                   'slip': 0.1,
+                   "uncertain": True}]
+
+
+agent_parameters = set_param_agent(params_shared,
+                                   params_finite_horizon,
+                                   params_multi_model)
+
+if nb_exp in experiments_to_launch and __name__ == '__main__':
+    res, param = main_function(agents_to_test,
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
+
+    get_all_plot(res, param, suptitle= 'Uncertain and Volatile variation')
+
+
+# ---------------------------------------------------------------------------- #
+# End of one-step environment
+# Beginning of mazes
+# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+# Exp 9 - Mazes - Volatile variation
+# ---------------------------------------------------------------------------- #
+nb_exp = 9
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
-
-# Agents
 agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon3',
                   'SoftmaxFiniteHorizon5',
                   'SoftmaxFiniteHorizon10',
                   'SoftmaxFiniteHorizon20',
-                  'SoftmaxMultiModel']
+                  'SoftmaxFiniteHorizon30',
+                  'SoftmaxMultiModel',
+                  'RLCD']
+
+
+play_parameters = {'trials': 1000,
+                   'max_step': 100}
+
+env_parameters = []
+env_to_test = 'PartiallyChangingCrossEnvironment'
+
+for i in range(10):
+    env_parameters.append({'number': i,
+                           'step_change': 1000,
+                           'conds': ['', '_D'],
+                           'value_change': 0.2,
+                           'uncertain': False})
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
                  "max_iterations": 1000,
                  "step_update": 1,
-                 "beta": 10,
+                 "beta": 3,
                  "gamma": 0.95}
 
-params_finite_horizon = {'horizon': 3}
+params_finite_horizon = {'horizon': 10}
 
-params_multi_model = {"horizon": 5,
-                      "kl_threshold": 0.3,
-                      "merging_threshold": 0.3,
+params_multi_model = {"horizon": 10,
+                      "kl_threshold": 1.,
+                      "merging_threshold": 0.1,
                       "delay": 1,
                       "nb_max_models": 5}
 
@@ -247,7 +328,7 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -257,53 +338,35 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
                                agent_parameters,
                                nb_processes=nb_proc)
 
-    get_all_plot(res, param)
+    get_all_plot(res, param, suptitle='Volatile variation')
 
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 4 - small beta
+# Maze Environment Back to initial position
+# Exp 10 - Mazes - uncertain variation
 # ---------------------------------------------------------------------------- #
-nb_exp = 4
-starting_seed = generate_seed(42)
+nb_exp = 10
+starting_seed = generate_seed(nb_exp)
 
-env_to_test = 'ThreeStates'
+play_parameters = {'trials': 200,
+                   'max_step': 100}
 
-play_parameters = {'trials': 2000,
-                   'max_step': 1}
+env_parameters = []
 
-env_parameters = [{"slip": 0.1,
-                   "step_change": 50,
-                   "uncertain": False}]
-nb_tests = 1
+env_to_test = 'PartiallyChangingCrossEnvironment'
+for i in range(10):
+    env_parameters.append({'number': i,
+                           'step_change': None,
+                           'conds': ['', '_D'],
+                           'value_change': 0.2,
+                           'uncertain': True})
 
-# Agents
-agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon3',
-                  'SoftmaxFiniteHorizon5',
-                  'SoftmaxFiniteHorizon10',
-                  'SoftmaxFiniteHorizon20',
-                  'SoftmaxMultiModel']
-
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 1,
-                 "gamma": 0.95}
-
-params_finite_horizon = {'horizon': 5}
-
-params_multi_model = {"horizon": 5,
-                      "kl_threshold": 0.3,
-                      "merging_threshold": 0.3,
-                      "delay": 1,
-                      "nb_max_models": 5}
 
 agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -313,49 +376,32 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
                                agent_parameters,
                                nb_processes=nb_proc)
 
-    get_all_plot(res, param)
+    get_all_plot(res, param, suptitle='Uncertain variation')
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 5 - no slip
+# Exp 11 - Mazes - uncertain-volatile variation
 # ---------------------------------------------------------------------------- #
-nb_exp = 5
+nb_exp = 11
+starting_seed = generate_seed(nb_exp)
 
-starting_seed = generate_seed(43)
+play_parameters = {'trials': 1000,
+                   'max_step': 100}
 
+env_parameters = []
 
-env_to_test = 'ThreeStates'
-play_parameters = {'trials': 2000,
-                   'max_step': 1}
+env_to_test = 'PartiallyChangingCrossEnvironment'
+for i in range(10):
+    env_parameters.append({'number': i,
+                           'step_change': 1000,
+                           'conds': ['', '_D'],
+                           'value_change': 0.2,
+                           'uncertain': True})
 
-env_parameters = [{"slip": 0.,
-                   "step_change": 50,
-                   "uncertain": False}]
-nb_tests = 1
+agent_parameters = set_param_agent(params_shared,
+                                   params_finite_horizon,
+                                   params_multi_model)
 
-# Agents
-agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon3',
-                  'SoftmaxFiniteHorizon5',
-                  'SoftmaxFiniteHorizon10',
-                  'SoftmaxFiniteHorizon20',
-                  'SoftmaxMultiModel']
-
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 10,
-                 "gamma": 0.95}
-
-params_finite_horizon = {'horizon': 5}
-
-params_multi_model = {"horizon": 5,
-                      "kl_threshold": 0.3,
-                      "merging_threshold": 0.3,
-                      "delay": 1,
-                      "nb_max_models": 5}
-
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -365,25 +411,27 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
                                agent_parameters,
                                nb_processes=nb_proc)
 
-    get_all_plot(res, param)
+    get_all_plot(res, param, suptitle='Uncertain and volatile variation')
 
+# ---------------------------------------------------------------------------- #
+# End of mazes
+# Beginning of chain env
+# ---------------------------------------------------------------------------- #
 
 # ---------------------------------------------------------------------------- #
 # Chain Environment
 # Exp 6 - Comparison between agents
 # ---------------------------------------------------------------------------- #
 nb_exp = 6
+starting_seed = generate_seed(nb_exp)
+nb_tests = 100
+
 agents_to_test = ['VI_softmax',
                   'SoftmaxFiniteHorizon3',
                   'SoftmaxFiniteHorizon5',
                   'SoftmaxFiniteHorizon10',
                   'SoftmaxFiniteHorizon20',
                   'SoftmaxMultiModel']
-
-
-# agents_to_test = ['VI_softmax',
-#                   'SoftmaxFiniteHorizon10',
-#                   'SoftmaxMultiModel']
 
 env_to_test = 'ChainProblem'
 play_parameters = {'trials': 500,
@@ -393,13 +441,6 @@ env_parameters = [{"slip": 0.1,
                   "size_chain": 5,
                    "step_change": 500,
                    "changes": ['S']}]
-
-
-starting_seed = generate_seed(2)
-nb_tests = 1
-
-
-nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
@@ -421,7 +462,7 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -439,6 +480,9 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
 # Exp 7 - Parameter Comparison horizon and creation
 # ---------------------------------------------------------------------------- #
 nb_exp = 7
+starting_seed = generate_seed(nb_exp)
+nb_tests = 1
+
 agents_to_test = ['Baseline',
                   'MMLowKL',
                   'MMHighKL',
@@ -457,32 +501,11 @@ env_parameters = [{"slip": 0.1,
                    "changes": ['S']}]
 
 
-starting_seed = generate_seed(1000)
-nb_tests = 1
-
-
-nb_proc = 10
-
-# Parameters agents
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 3,
-                 "gamma": 0.95}
-params_finite_horizon = {'horizon': 10}
-
-params_multi_model = {"horizon": 10,
-                      "kl_threshold": 1,
-                      "merging_threshold": 0.1,
-                      "delay": 1,
-                      "nb_max_models": 5}
-
-
 agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -499,7 +522,9 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
 # Chain Environment
 # Exp 8 - Parameter Comparison merging and forgetting
 # ---------------------------------------------------------------------------- #
-nb_exp=8
+nb_exp = 8
+starting_seed = generate_seed(nb_exp)
+nb_tests = 1
 agents_to_test = ['Baseline',
                   'MMLowMerging',
                   'MMHighMerging',
@@ -516,13 +541,6 @@ env_parameters = [{"slip": 0.1,
                    "step_change": 500,
                    "changes": ['S']}]
 
-
-starting_seed = generate_seed(1001)
-nb_tests = 1
-
-
-nb_proc = 10
-
 params_shared = {"threshold_VI": 1e-3,
                  "max_iterations": 1000,
                  "step_update": 1,
@@ -541,77 +559,7 @@ agent_parameters = set_param_agent(params_shared,
                                    params_finite_horizon,
                                    params_multi_model)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
-    res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
-
-    get_all_plot(res, param)
-
-
-# ---------------------------------------------------------------------------- #
-# Maze
-# Exp 9 - Basic Maze
-# ---------------------------------------------------------------------------- #
-nb_exp = 9
-agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon5',
-                  'SoftmaxFiniteHorizon10',
-                  'SoftmaxFiniteHorizon20',
-                  'SoftmaxFiniteHorizon30',
-                  'SoftmaxMultiModel']
-
-
-play_parameters = {'trials': 1000,
-                   'max_step': 100}
-
-env_parameters = []
-
-# env_to_test = 'ChangingCrossEnvironment'
-# for i in range(1):
-#     env_parameters.append({'number': i,
-#                            'step_change': 1000,
-#                            'conds': ['', '_C']})
-
-env_to_test = 'PartiallyChangingCrossEnvironment'
-for i in range(10):
-    env_parameters.append({'number': i,
-                           'step_change': 2000,
-                           'conds': ['', '_D'],
-                           'value_change': 0.2,
-                           'uncertain': False})
-
-
-starting_seed = generate_seed(17)
-nb_tests = 1
-nb_proc = 10
-
-# Parameters agents
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 3,
-                 "gamma": 0.95}
-
-params_finite_horizon = {'horizon': 10}
-
-params_multi_model = {"horizon": 10,
-                      "kl_threshold": 1.,
-                      "merging_threshold": 0.1,
-                      "delay": 1,
-                      "nb_max_models": 5}
-
-
-agent_parameters = set_param_agent(params_shared,
-                                   params_finite_horizon,
-                                   params_multi_model)
-
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -624,74 +572,11 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
     get_all_plot(res, param)
 
 
-# ---------------------------------------------------------------------------- #
-# Maze Environment Back to initial position
-# Exp 10 - Return to init state
-# ---------------------------------------------------------------------------- #
-nb_exp = 10
-agents_to_test = ['VI_softmax',
-                  'SoftmaxFiniteHorizon5',
-                  'SoftmaxFiniteHorizon10',
-                  'SoftmaxFiniteHorizon20',
-                  'SoftmaxFiniteHorizon30',
-                  'SoftmaxMultiModel']
-
-
-play_parameters = {'trials': 1000,
-                   'max_step': 100}
-
-env_parameters = []
-
-env_to_test = 'PartiallyChangingCrossEnvironment'
-for i in range(1):
-    env_parameters.append({'number': i,
-                           'step_change': 2000,
-                           'conds': ['', '_D'],
-                           'value_change': 0.2,
-                           'uncertain': True})
-
-
-starting_seed = generate_seed(17)
-nb_tests = 2
-nb_proc = 10
-
-# Parameters agents
-params_shared = {"threshold_VI": 1e-3,
-                 "max_iterations": 1000,
-                 "step_update": 1,
-                 "beta": 3,
-                 "gamma": 0.95}
-
-params_finite_horizon = {'horizon': 50}
-
-params_multi_model = {"horizon": 10,
-                      "kl_threshold": 1.,
-                      "merging_threshold": 0.1,
-                      "delay": 1,
-                      "nb_max_models": 5}
-
-
-agent_parameters = set_param_agent(params_shared,
-                                   params_finite_horizon,
-                                   params_multi_model)
-
-if nb_exp in experiments_to_launch and __name__=='__main__':
-    res, param = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
-
-    get_all_plot(res, param)
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 11 - Chain Task small change RLCD
+# Exp 12 - Chain Task small change - RLCD
 # ---------------------------------------------------------------------------- #
-nb_exp = 11
+nb_exp = 12
 
 agents_to_test = ['VI_softmax', 'SoftmaxFiniteHorizon',
                   'RLCD', 'SoftmaxMultiModel']
@@ -705,9 +590,8 @@ env_parameters = [{"slip": 0.1,
                    "changes": ['S']}]
 
 
-starting_seed = generate_seed(2)
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
@@ -733,23 +617,22 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
 
     get_all_plot(res, param)
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 12 - Chain Task big change RLCD
+# Exp 13 - Chain Task big change RLCD
 # ---------------------------------------------------------------------------- #
-nb_exp = 12
+nb_exp = 13
 agents_to_test = ['VI_softmax', 'SoftmaxFiniteHorizon',
                   'RLCD', 'SoftmaxMultiModel']
 env_to_test = 'ChainProblem'
@@ -762,9 +645,8 @@ env_parameters = [{"slip": 0.1,
                    "changes": ['T']}]
 
 
-starting_seed = generate_seed(2)
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
@@ -790,24 +672,23 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
 
     get_all_plot(res, param)
 
 
 # ---------------------------------------------------------------------------- #
-# Three States environment
-# Exp 13 - Chain Task all but one RLCD
+# Exp 14 - Chain Task all but one RLCD
 # ---------------------------------------------------------------------------- #
-nb_exp = 13
+nb_exp = 14
 agents_to_test = ['VI_softmax', 'SoftmaxFiniteHorizon',
                   'RLCD', 'SoftmaxMultiModel']
 env_to_test = 'ChainProblem'
@@ -820,9 +701,8 @@ env_parameters = [{"slip": 0.1,
                    "changes": ['T minus S']}]
 
 
-starting_seed = generate_seed(2)
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
@@ -848,22 +728,23 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
 
     get_all_plot(res, param)
+
 # ---------------------------------------------------------------------------- #
 # Maze environment
-# Exp 14 - Partial change + RLCD
+# Exp 15 - Partial change + RLCD
 # ---------------------------------------------------------------------------- #
-nb_exp = 14
+nb_exp = 15
 agents_to_test = ['VI_softmax', 'SoftmaxFiniteHorizon',
                   'RLCD', 'SoftmaxMultiModel']
 
@@ -882,9 +763,8 @@ for i in range(10):
                            'uncertain': False})
 
 
-starting_seed = generate_seed(17)
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
@@ -910,7 +790,7 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
                                env_to_test,
                                nb_tests,
@@ -924,9 +804,9 @@ if nb_exp in experiments_to_launch and __name__=='__main__':
 
 # ---------------------------------------------------------------------------- #
 # Maze environment
-# Exp 15 - Total change RLCD
+# Exp 16 - Total change RLCD
 # ---------------------------------------------------------------------------- #
-nb_exp = 15
+nb_exp = 16
 agents_to_test = ['VI_softmax', 'SoftmaxFiniteHorizon',
                   'RLCD', 'SoftmaxMultiModel']
 
@@ -944,9 +824,8 @@ for i in range(3):
                            'uncertain': False})
 
 
-starting_seed = generate_seed(17)
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
 # Parameters agents
 params_shared = {"threshold_VI": 1e-3,
@@ -972,23 +851,23 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
 
     get_all_plot(res, param)
 
 # ---------------------------------------------------------------------------- #
 # Four states
-# Exp 16 - Total change Four states + RLCD
+# Exp 17 - Total change Four states + RLCD
 # ---------------------------------------------------------------------------- #
-nb_exp = 16
+nb_exp = 17
 env_to_test = 'FourStates'
 play_parameters = {'trials': 2000,
                    'max_step': 1}
@@ -997,9 +876,8 @@ env_parameters = [{"step_change": 50,
                    'slip': 0.1}]
 
 
-starting_seed = generate_seed(0)
+starting_seed = generate_seed(nb_exp)
 nb_tests = 1
-nb_proc = 10
 
 
 # Agents
@@ -1037,14 +915,14 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-if nb_exp in experiments_to_launch and __name__=='__main__':
+if nb_exp in experiments_to_launch and __name__ == '__main__':
     res, param = main_function(agents_to_test,
-                            env_to_test,
-                            nb_tests,
-                            play_parameters,
-                            starting_seed,
-                            env_parameters,
-                            agent_parameters,
-                            nb_processes=nb_proc)
+                               env_to_test,
+                               nb_tests,
+                               play_parameters,
+                               starting_seed,
+                               env_parameters,
+                               agent_parameters,
+                               nb_processes=nb_proc)
 
     get_all_plot(res, param)

@@ -8,8 +8,18 @@ all_colors = {
     'gray':    '#999999',
     'red':     '#e41a1c',
     'yellow':  '#dede00',
-    'black': '#000000'
+    'black': '#000000',
+    'very_light': 	"#F73027",
+    'light': '#E64D83',
+    'mid':'#CC66C2',
+    'dark':'#9E68CC',
+    'very_dark':'#69208E'
 }
+
+
+one_step_environments = ['MAB',
+                         'ThreeStates',
+                         'FourStates']
 
 multi_model_agents = ['SoftmaxMultiModel',
                       'RmaxExploration',
@@ -30,12 +40,12 @@ multi_model_agents = ['SoftmaxMultiModel',
 colors = {'VI_softmax': 'gray',
           'reward': 'blue',
 
-          'SoftmaxFiniteHorizon': 'red',
-          'SoftmaxFiniteHorizon10': 'red',
-          'SoftmaxFiniteHorizon5': 'orange',
-          'SoftmaxFiniteHorizon20': 'green',
-          'SoftmaxFiniteHorizon3': 'pink',
-          'SoftmaxFiniteHorizon30': 'pink',
+          'SoftmaxFiniteHorizon': 'mid',
+          'SoftmaxFiniteHorizon10': 'mid',
+          'SoftmaxFiniteHorizon5': 'light',
+          'SoftmaxFiniteHorizon20': 'dark',
+          'SoftmaxFiniteHorizon3': 'very_light',
+          'SoftmaxFiniteHorizon30': 'very_dark',
 
           'SoftmaxMultiModel': 'blue',
 
@@ -70,7 +80,7 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'SoftmaxFiniteHorizon20': 'Finite Horizon h=20',
           'SoftmaxFiniteHorizon30': 'Finite Horizon h=30',
 
-          'SoftmaxMultiModel': 'Multi Model',
+          'SoftmaxMultiModel': 'MMRCPD',
           'Baseline': 'Baseline',
 
           'MMLowKL': 'High Creation Δc=0.3',
@@ -91,29 +101,40 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'nb_merging': 'Number of models merged',
           'nb_forgetting': 'Number of models deleted'}
 
-smoothing_factors = {'VI_softmax': 1e10,
-                     'SoftmaxFiniteHorizon': 1e10,
-                     'SoftmaxFiniteHorizon3': 1e10,
-                     'SoftmaxFiniteHorizon5': 1e10,
-                     'SoftmaxFiniteHorizon10': 1e10,
-                     'SoftmaxFiniteHorizon20': 1e10,
-                     'SoftmaxFiniteHorizon30': 1e10,
-                     'SoftmaxMultiModel': 1e10,
-                     'Baseline': 1e10,
-                     'MMLowKL': 1e10,
-                     'MMHighKL': 1e10,
-                     'MMLowHorizon': 1e10,
-                     'MMHighHorizon': 1e10,
-                     'MMHighHorizonLowKL': 1e10,
-                     'MMLowMerging': 1e10,
-                     'MMHighMerging': 1e10,
-                     'MMForget': 1e10,
-                     'MMNoMerging': 1e10,
-                     
-                     'reward': 1e10,
+markers = {'VI_softmax': 'X',
+          'reward': '8',
 
-                     'nb_merging': 1e10,
-                     'nb_forgetting': 1e10,
-                     'nb_creation': 1e10,
-                     'nb_model': 1e10,
-                     'RLCD':1e10}
+          'SoftmaxFiniteHorizon': '*',
+          'SoftmaxFiniteHorizon3': '*',
+          'SoftmaxFiniteHorizon5': '*',
+          'SoftmaxFiniteHorizon10': '*',
+          'SoftmaxFiniteHorizon20': '*',
+          'SoftmaxFiniteHorizon30': '*',
+
+          'SoftmaxMultiModel': '8',
+          'Baseline': '8',
+
+          'MMLowKL': '8',
+          'MMHighKL': '8',
+          'MMLowHorizon': '8',
+          'MMHighHorizon': '8',
+          'MMHighHorizonLowKL': '8',
+
+
+          'MMLowMerging': '8',
+          'MMHighMerging': '8',
+          'MMForget': '8',
+          'MMNoMerging': '8',
+          'RLCD': '^',
+
+          'nb_model': '8',
+          'nb_creation': '*',
+          'nb_merging': 'X',
+          'nb_forgetting': '^'}
+
+
+
+
+smoothing_factors = {}
+for agent_name in colors.keys():
+    smoothing_factors[agent_name] = None

@@ -74,26 +74,27 @@ class ChainProblem:
                         list(self.transitions[key]))
 
     def new_episode(self):
-        if self.step % (self.step_change) == 0:
+        if self.step_change is not None:
+            if self.step % (self.step_change) == 0:
 
-            # Finding the change cond number
-            nb_change = (self.step // self.step_change)
-            nb_change %= len(self.changes)
-            nb_change = int(nb_change)-1
-            self.nb_changes += 1
+                # Finding the change cond number
+                nb_change = (self.step // self.step_change)
+                nb_change %= len(self.changes)
+                nb_change = int(nb_change)-1
+                self.nb_changes += 1
 
-            # Applying the change
-            change = self.changes[nb_change]
-            if change == 'T':
-                self.total_change()
-            elif change == 'S':
-                self.change_random_transition()
-            elif change == 'T minus S':
-                self.change_all_but_one()
-            elif 0 <= change <= 1:
-                self.slip_change(change)
-            else:
-                raise ValueError(str(change) + " is not a good condition")
+                # Applying the change
+                change = self.changes[nb_change]
+                if change == 'T':
+                    self.total_change()
+                elif change == 'S':
+                    self.change_random_transition()
+                elif change == 'T minus S':
+                    self.change_all_but_one()
+                elif 0 <= change <= 1:
+                    self.slip_change(change)
+                else:
+                    raise ValueError(str(change) + " is not a good condition")
 
             # Adds the new models to all the true models the agent faced.
             self.check_new_model()
@@ -213,14 +214,15 @@ class ChangingCrossEnvironment(CrossEnvironment):
                 self.all_transitions[key].append(list(self.transitions[key]))
 
     def new_episode(self):
-        change_cond = (self.total_counter //
-                       self.step_change) % len(self.conds)
-        if change_cond != self.current_cond:
-            self.nb_changes += 1
-            change_cond = int(change_cond)
-            self.current_cond = change_cond
-            new_cond = self.conds[change_cond]
-            super().__init__(self.number, type=new_cond)
+        if self.step_change is not None:
+            change_cond = (self.total_counter //
+                        self.step_change) % len(self.conds)
+            if change_cond != self.current_cond:
+                self.nb_changes += 1
+                change_cond = int(change_cond)
+                self.current_cond = change_cond
+                new_cond = self.conds[change_cond]
+                super().__init__(self.number, type=new_cond)
 
         self.agent_state = self.initial_state
 
@@ -320,29 +322,30 @@ class PartiallyChangingCrossEnvironment():
                         list(self.transitions[key]))
 
     def new_episode(self):
-        change = (self.total_counter % self.step_change) == 0
-        if change:
-            self.nb_changes += 1
-            total_elements = self.number_states
-            if self.value_change == 1:
-                random_indices = np.arange(total_elements)
-            else:
-                num_changes = int(self.value_change * self.number_states)
-                random_indices = np.random.choice(total_elements,
-                                                  num_changes,
-                                                  replace=False)
+        if self.step_change is not None:
+            change = (self.total_counter % self.step_change) == 0
+            if change:
+                self.nb_changes += 1
+                total_elements = self.number_states
+                if self.value_change == 1:
+                    random_indices = np.arange(total_elements)
+                else:
+                    num_changes = int(self.value_change * self.number_states)
+                    random_indices = np.random.choice(total_elements,
+                                                    num_changes,
+                                                    replace=False)
 
-            self.current_transis[random_indices] += 1
-            self.current_transis %= len(self.conds)
-            for index, state in enumerate(random_indices):
-                new_transitions = self.all_transitions2[self.current_transis[index], state].copy(
-                )
-                self.transitions[state] = new_transitions
-            # Putting dummy transitions for walls
-            for state in range(self.number_states):
-                    if np.sum(self.transitions[state])==0:
-                        self.transitions[state,:,state]=1
-            self.check_new_model()
+                self.current_transis[random_indices] += 1
+                self.current_transis %= len(self.conds)
+                for index, state in enumerate(random_indices):
+                    new_transitions = self.all_transitions2[self.current_transis[index], state].copy(
+                    )
+                    self.transitions[state] = new_transitions
+                # Putting dummy transitions for walls
+                for state in range(self.number_states):
+                        if np.sum(self.transitions[state])==0:
+                            self.transitions[state,:,state]=1
+                self.check_new_model()
         self.agent_state = self.initial_state
 
     def make_step(self, action):
@@ -399,17 +402,18 @@ class SwappingCrossEnvironment(CrossEnvironment):
         self.rewards[index_change, 1] = tmp_rewards
 
     def new_episode(self):
-        change_cond = (self.total_counter //
-                       self.step_change) % len(self.conds)
-        if change_cond != self.current_cond:
-            self.nb_changes += 1
-            change_cond = int(change_cond)
-            self.current_cond = change_cond
-            new_cond = self.conds[change_cond]
-            super().__init__(self.number, type=new_cond)
-            # print("Step" + str(self.total_counter) +
-            #       ":Task change, new cond is "+str(new_cond))
-            # print(self.step)
+        if self.step_change is not None:
+            change_cond = (self.total_counter //
+                        self.step_change) % len(self.conds)
+            if change_cond != self.current_cond:
+                self.nb_changes += 1
+                change_cond = int(change_cond)
+                self.current_cond = change_cond
+                new_cond = self.conds[change_cond]
+                super().__init__(self.number, type=new_cond)
+                # print("Step" + str(self.total_counter) +
+                #       ":Task change, new cond is "+str(new_cond))
+                # print(self.step)
         self.agent_state = self.initial_state
 
     def make_step(self, action):
@@ -443,7 +447,7 @@ class ThreeStates:
         self.rewards[2] = 1
         self.initial_state = 0
         self.agent_state = self.initial_state
-
+        self.best_action = 1
         self.update_probas()
 
     def update_probas(self):
@@ -472,9 +476,11 @@ class ThreeStates:
 
 
     def new_episode(self):
-        if self.step % (self.step_change) == 0:
-            self.slip = 1-self.slip
-            self.update_probas()
+        if self.step_change is not None :
+            if self.step % (self.step_change) == 0:
+                self.slip = 1-self.slip
+                self.update_probas()
+                self.best_action = (self.best_action+1)%2
 
         self.agent_state = self.initial_state
 
@@ -544,11 +550,11 @@ class DiffThreeStates:
         self.rewards[2] = 1/np.max(self.probas[self.cond])
 
     def new_episode(self):
-
-        if self.step % (self.step_change) == 0:
-            self.cond+=1
-            self.cond%=len(self.probas)
-            self.update_probas()
+        if self.step_change is not None:
+            if self.step % (self.step_change) == 0:
+                self.cond+=1
+                self.cond%=len(self.probas)
+                self.update_probas()
 
         self.agent_state = self.initial_state
 
@@ -585,6 +591,7 @@ class FourStates:
         self.states = np.arange(self.number_states)
         self.actions = np.arange(self.number_actions)
         self.step = 0
+        self.best_action = 1
 
 
         self.initial_state = 0
@@ -627,10 +634,11 @@ class FourStates:
         self.rewards[3] = 10
 
     def new_episode(self):
-
-        if self.step % (self.step_change) == 0:
-            self.swap = not self.swap
-            self.update_probas()
+        if self.step_change is not None:
+            if self.step % (self.step_change) == 0:
+                self.swap = not self.swap
+                self.update_probas()
+                self.best_action = (self.best_action+1)%2
 
         self.agent_state = self.initial_state
 
@@ -741,10 +749,11 @@ class MAB:
         self.agent_state = self.initial_state
 
     def change_of_task(self):
-        if self.step % self.step_change == 0:
-            self.current_situation = np.random.randint(
-                self.number_of_situations)
-            self.means = self.all_means[self.current_situation]
+        if self.step_change is not None:
+            if self.step % self.step_change == 0:
+                self.current_situation = np.random.randint(
+                    self.number_of_situations)
+                self.means = self.all_means[self.current_situation]
 
     def make_step(self, action):
         self.step += 1

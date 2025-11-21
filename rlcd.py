@@ -49,12 +49,12 @@ class RLCD:
 
     def _new_model(self):
         # uniform initialization
-        tSAS = np.ones(self.shape_SAS) / self.size_environment
+        #tSAS = np.ones(self.shape_SAS) / self.size_environment
 
         # non-uniform initialization
-        # tSAS = np.zeros(self.shape_SAS)
-        # for action in range(self.size_actions):
-        #         tSAS[:,action,:]=np.eye(self.size_environment)
+        tSAS = np.zeros(self.shape_SAS)
+        for action in range(self.size_actions):
+                tSAS[:,action,:]=np.eye(self.size_environment)
 
         model = {
             "Q": np.zeros(self.shape_SA),

@@ -1,6 +1,6 @@
 from variables import envs, agents
 from multiprocessing import Pool
-from consts import multi_model_agents
+from consts import multi_model_agents, one_step_environments
 import numpy as np
 import time
 
@@ -10,6 +10,7 @@ def play(environment,
          max_step=30):
 
     name_agent = agent.__class__.__name__
+    name_env = environment.__class__.__name__
     multi_model = name_agent in multi_model_agents
 
     log = {}
@@ -26,6 +27,12 @@ def play(environment,
     reward_per_episode = []
     time_per_episode = []
 
+    if  name_env in one_step_environments:
+        env_is_one_step = True
+        best_action = []
+    else :
+        env_is_one_step = False
+
     for _ in range(trials):
         cumulative_reward, step, game_over, time_trial = 0, 0, False, 0
 
@@ -41,11 +48,15 @@ def play(environment,
             reward, new_state = environment.make_step(action)
             agent.learn(old_state, reward, new_state, action)
             cumulative_reward += reward
-            time_trial = time.time()-time_init_trial
+            #time_trial = time.time()-time_init_trial
 
             step += 1
             if step == max_step:
                 game_over = True
+            
+            if env_is_one_step:
+                best_action.append(action == environment.best_action)
+
         time_trial = time.time()-time_init_trial
         time_per_episode.append(time_trial)
         environment.new_episode()
@@ -60,6 +71,8 @@ def play(environment,
     log['reward'] = reward_per_episode
     log['total_time'] = end_time-start_time
     log['times'] = time_per_episode
+    if env_is_one_step:
+        log['best_action']=best_action
     if multi_model:
         log['creation_per_state'] = agent.creation_per_state
         log['model_per_state'] = agent.model_per_state
@@ -137,7 +150,8 @@ def main_function(agent_to_test,
                   starting_seed,
                   env_parameters,
                   agent_parameters,
-                  nb_processes=5):
+                  nb_processes=5,
+                  save=False):
 
     time_before = time.time()
     every_simulation = get_simulation_to_do(agent_to_test,
@@ -162,7 +176,7 @@ def main_function(agent_to_test,
     time_after = time.time()
     print('Computation time: '+str(time_after - time_before))
     title = str(time_before)
-    np.save('results/logs'+title+' .npy', logs)
+    if save : np.save('results/logs'+title+' .npy', logs)
 
     parameters = {**play_parameters,
                   'env_name': env_to_test,
@@ -174,5 +188,5 @@ def main_function(agent_to_test,
                   'time': title
                   }
 
-    np.save('results/parameters'+title+'.npy', parameters)
+    if save : np.save('results/parameters'+title+'.npy', parameters)
     return logs, parameters
