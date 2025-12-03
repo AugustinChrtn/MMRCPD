@@ -1,5 +1,7 @@
 from consts import all_colors, colors, labels, markers
 from consts import one_step_environments, multi_model_agents
+from consts import mM_and_RLCD
+from matplotlib.ticker import MaxNLocator
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,11 +21,11 @@ def plot_with_CI(rewards,
                  color='tab:blue',
                  label='Reward',
                  marker='.',
-                 markersize=6):
+                 markersize=4):
     mean = np.mean(rewards, axis=0)
     std = np.std(rewards, axis=0)
-    index_plot = np.arange(len(mean))*steps_per_episode
-
+    #index_plot = np.arange(len(mean))*steps_per_episode
+    index_plot = np.arange(len(mean))
     n_values = nb_iters
     conf_I = 1.96*std/np.sqrt(n_values)
     yerr0 = mean-conf_I
@@ -69,65 +71,6 @@ def plot_legend(results):
     fig.legend(patches, labels, loc='center', frameon=False)
     plt.savefig('results/Legend'+str(time.time())+'.pdf', bbox_inches='tight')
     plt.close()
-
-# def plot_curves(results,
-#                 change_rate,
-#                 steps,
-#                 nb_iters,
-#                 ylabel='Reward',
-#                 xlabel='Steps',
-#                 title='',
-#                 legend=True,
-#                 multiply=False):
-#     """Plot the results"""
-#     fig, ax = plt.subplots(figsize = (7,6))
-#     # plt.figure(dpi=300)
-#     plt.xlabel(xlabel)
-#     plt.ylabel(ylabel)
-#     # plt.grid(linestyle='--')
-
-#     names = list(results.keys())
-#     counter = 0
-
-#     for name in names:
-#         res_to_plot = np.array(results[name])
-#         if multiply:
-#             res_to_plot *= 1e3/steps
-#         counter += 1
-#         if counter == 1:
-#             total_steps = len(res_to_plot[0])*steps
-#             plot_change(change_rate, total_steps)
-
-#         plot_with_CI(res_to_plot,
-#                      steps,
-#                      nb_iters,
-#                      save=False,
-#                      color=all_colors[colors[name]],
-#                      label=labels[name],
-#                      marker=markers[name],
-#                      markersize=6)
-#         # plot_change(change_rate, total_steps)
-
-#     if legend:
-#         handles, lab = ax.get_legend_handles_labels()
-#         odd = len(lab) % 2
-#         fig.legend(handles, lab,
-#                    loc="lower center",
-#                    ncol=2+odd,
-#                    fontsize=12)
-#         bottom_adjust = 0.15+0.03*(len(lab)//2)
-#         plt.subplots_adjust(bottom=bottom_adjust)
-#     else:
-#         handles, lab = ax.get_legend_handles_labels()
-#         bottom_adjust = 0.15+0.03*(len(lab)//2)
-#         plt.subplots_adjust(bottom=bottom_adjust)
-#     plt.ylabel(ylabel)
-#     plt.xlabel(xlabel)
-#     if title == '':
-#         title = str(time.time())
-#     plt.savefig('results/'+ylabel+title+'.pdf', bbox_inches='tight')
-#     plt.close()
-
 
 def plot_curves(results,
                 change_rate,
@@ -186,7 +129,7 @@ def plot_curves(results,
                      color=all_colors[colors[name]],
                      label=labels[name],
                      marker=markers[name],
-                     markersize=6)
+                     markersize=4)
 
     # Configure right subplot (the actual plot)
     ax_right.set_xlabel(xlabel, fontweight='bold')
@@ -261,7 +204,7 @@ def plot_two(dic_of_rewards,
              title,
              xlabel,
              ylabel,
-             legend=True,
+             legend=False,
              multiply=False,
              suptitle='Uncertain-Volatile variation'):
 
@@ -291,19 +234,15 @@ def plot_two(dic_of_rewards,
                        save=False,
                        multiply=multiply)
 
-    # if legend:
-    #     handles, labels = axs[0].get_legend_handles_labels()
-    #     # Create a single legend below all subplots
-    #     odd = len(labels) % 2
-    #     fig.legend(handles, labels, loc="lower center",
-    #                ncol=2+odd, fontsize=12)
-    #     bottom_adjust = 0.2+0.03*(len(labels)//2)
-    #     # Adjust layout to make space for the legend
-    #     plt.subplots_adjust(bottom=bottom_adjust)
-    # else:
-    #     handles, labels = axs[0].get_legend_handles_labels()
-    #     bottom_adjust = 0.2+0.03*(len(labels)//2)
-    #     plt.subplots_adjust(bottom=bottom_adjust)
+    if legend : 
+        handles, labels = axs[0].get_legend_handles_labels()
+        fig_legend = plt.figure(figsize=(8, 2))
+        fig_legend.legend(handles, labels, loc='center', ncol=2,
+                        prop={"weight": "bold", "size": 14})
+        fig_legend.tight_layout()
+        fig_legend.savefig(
+            "results/legend_"+title+".pdf", bbox_inches='tight')
+        plt.close(fig_legend)
 
     axs[0].set_title(suptitle, fontweight='bold', size=22, pad=25)
     plt.savefig('results/'+title+'.pdf', bbox_inches='tight')
@@ -504,7 +443,7 @@ def plot_avg_after_change(dic_of_values,
                 label=labels[agent],
                 color=all_colors[colors[agent]],
                 marker=markers[agent],
-                markersize=6)
+                markersize=4)
         ax.fill_between(x_axis,
                         array_mean-array_CI,
                         array_mean+array_CI,
@@ -513,6 +452,8 @@ def plot_avg_after_change(dic_of_values,
 
     ax.set_ylabel(ylabel, fontweight='bold')
     ax.set_xlabel(xlabel, fontweight='bold')
+    # ax.yaxis.get_major_locator().set_params(integer=True)
+    ax.xaxis.get_major_locator().set_params(integer=True)
     if legend:
         ax.legend(loc='lower center')
     if title == '':
@@ -566,7 +507,7 @@ def plot_avg_over_time(dic_of_values,
                 label=labels[agent],
                 color=all_colors[colors[agent]],
                 marker=markers[agent],
-                markersize=6)
+                markersize=4)
         ax.fill_between(x_axis,
                         array_mean-array_CI,
                         array_mean+array_CI,
@@ -575,6 +516,8 @@ def plot_avg_over_time(dic_of_values,
 
     ax.set_ylabel(ylabel, fontweight='bold')
     ax.set_xlabel(xlabel, fontweight='bold')
+    # ax.yaxis.get_major_locator().set_params(integer=True)
+    ax.xaxis.get_major_locator().set_params(integer=True)
     if legend:
         ax.legend(loc='lower center')
     if title == '':
@@ -617,9 +560,10 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
     all_models = {}
     models_created_per_cell = {}
     models_per_cell = {}
-    all_distance = {}
     all_current_distance = {}
     all_best_actions = {}
+
+    all_changes = {}
 
     all_current_models = {}
     all_models_created = {}
@@ -635,6 +579,8 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
             if env_tested:
                 models_created_per_cell[agent] = []
                 models_per_cell[agent] = []
+        if agent in mM_and_RLCD:
+            all_changes[agent] = []
 
     for agent in agents_tested:
         all_rewards[agent] = []
@@ -664,7 +610,6 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
             all_values["distance_current_model"])
 
         if agent_name in multi_model_agents:
-
             all_current_models[agent_name].append(all_values['nb_model'])
             all_models_created[agent_name].append(all_values['nb_creation'])
             all_models_forgotten[agent_name].append(
@@ -680,6 +625,9 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
                     all_values['creation_per_state'])
                 models_per_cell[agent_name].append(
                     all_values['model_per_state'])
+            
+        if agent_name in mM_and_RLCD:
+            all_changes[agent_name].append(all_values['all_changes'])
 
         if env_is_one_step:
             all_best_actions[agent_name].append(all_values["best_action"])
@@ -695,7 +643,7 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
     if env_is_one_step:
         event = 'steps'
         actions_or_rewards = all_best_actions
-        spec_ylabel = 'Probability of selecting best action'
+        spec_ylabel = 'Probability of selecting the best action'
     else:
         event = 'trials'
         actions_or_rewards = all_rewards
@@ -709,6 +657,7 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
                     title="Rewards"+title+str(no_legend),
                     legend=no_legend,
                     ylabel=spec_ylabel,
+                    xlabel = 'Number of '+event,
                     suptitle=suptitle)
 
         plot_curves(all_times,
@@ -718,10 +667,12 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
                     title="Times"+title+str(no_legend),
                     legend=no_legend,
                     ylabel="Time per decision (ms)",
+                    xlabel = 'Number of '+event,
                     multiply=True,
                     suptitle=suptitle)
 
     plot_time(all_total_times, title=title)
+
 
     for agent in agents_tested:
         if agent in multi_model_agents:
@@ -734,6 +685,14 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
                         title=agent+title,
                         legend=legend,
                         suptitle=suptitle)
+            # plot_curves(all_changes[agent],
+            #             nb_iters=nb_iters,
+            #             change_rate=change_rate,
+            #             steps=steps,
+            #             ylabel='Time of detected change',
+            #             title=agent+title,
+            #             legend=legend,
+            #             suptitle=suptitle)
             one_env = len(parameters['env_param']) == 1
             if env_tested in ["ChangingCrossEnvironment",
                               "PartiallyChangingCrossEnvironment"] and one_env:
@@ -784,41 +743,54 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
                          change_rate,
                          nb_iters,
                          title)
+        
+    plot_two(actions_or_rewards,
+                steps,
+                trials,
+                change_rate,
+                nb_iters,
+                title='reward_sum_up'+title+str(no_legend),
+                xlabel=xlabel,
+                ylabel=spec_ylabel,
+                legend=True,
+                suptitle=suptitle)
 
-    for no_legend in [False]:
-        plot_two(actions_or_rewards,
-                 steps,
-                 trials,
-                 change_rate,
-                 nb_iters,
-                 title='reward_sum_up'+title+str(no_legend),
-                 xlabel=xlabel,
-                 ylabel=spec_ylabel,
-                 legend=no_legend,
-                 suptitle=suptitle)
+    plot_two(all_current_distance,
+                steps,
+                trials,
+                change_rate,
+                nb_iters,
+                ylabel='Euclidean distance',
+                title='distance_sum_up'+title+str(no_legend),
+                xlabel=xlabel,
+                legend=False,
+                suptitle=suptitle)
 
-        plot_two(all_current_distance,
-                 steps,
-                 trials,
-                 change_rate,
-                 nb_iters,
-                 ylabel='Euclidean distance',
-                 title='distance_sum_up'+title+str(no_legend),
-                 xlabel=xlabel,
-                 legend=no_legend,
-                 suptitle=suptitle)
-
-        plot_two(all_times,
-                 steps,
-                 trials,
-                 change_rate,
-                 nb_iters,
-                 ylabel='Time per decision (ms)',
-                 title='time_sum_up'+title+str(no_legend),
-                 xlabel=xlabel,
-                 legend=no_legend,
-                 multiply=True,
-                 suptitle=suptitle)
+    plot_two(all_times,
+                steps,
+                trials,
+                change_rate,
+                nb_iters,
+                ylabel='Time per decision (ms)',
+                title='time_sum_up'+title+str(no_legend),
+                xlabel=xlabel,
+                legend=False,
+                multiply=True,
+                suptitle=suptitle)
+        
+    if agent in mM_and_RLCD :
+        
+        plot_two(all_changes,
+                steps,
+                trials,
+                change_rate,
+                nb_iters,
+                ylabel='Number of changes',
+                title='changes'+title+str(no_legend),
+                xlabel=xlabel,
+                legend=no_legend,
+                multiply=False,
+                suptitle=suptitle)
 
 
 # ---------------------------------------------------------------------------- #
@@ -830,7 +802,8 @@ def plot_maze(world,
               path,
               labels=np.empty(0),
               arrows=np.empty(0),
-              uncertain=np.empty(0)):
+              uncertain=np.empty(0),
+              blue_circle=False):
 
     reward = world[world > 0][0]
 
@@ -838,7 +811,7 @@ def plot_maze(world,
     black = [0, 0, 0]
     blue = [0.14, 0.48, 1]
     red = [1, 0, 0]
-    yellow = [1, 1, 0.6]
+    yellow = [218/255,165/255,32/255]
     size_colors = size+tuple([3])
     array_of_colors = np.ones(size_colors)
     init_state = world == -2
@@ -851,9 +824,7 @@ def plot_maze(world,
             pattern_array[key] = True
 
     if len(uncertain) > 0:
-        pattern_array = np.random.choice(a=[False, True],
-                                         size=np.shape(init_state),
-                                         p=[0.8, 0.2])
+        pattern_array = arrows != uncertain
         pattern_array[walls] = False
 
     array_of_colors[pattern_array] = yellow
@@ -876,7 +847,7 @@ def plot_maze(world,
     if len(arrows) != 0:
         for i in range(arrows.shape[0]):
             for j in range(arrows.shape[1]):
-                if walls[i, j] != -1:
+                if walls[i, j] ==0:
                     action = arrows[i, j]
                     if len(uncertain) > 0 and pattern_array[i, j]:
                         action = uncertain[i, j]
@@ -896,6 +867,12 @@ def plot_maze(world,
                     elif action == 3:  # Right arrow (→)
                         ax.arrow(j, i, 0.1, 0, head_width=0.1,
                                  head_length=0.1, fc='black', ec='black')
+                    
+                    if blue_circle :
+                        circle = plt.Circle((j-0.4, i-0.4), 0.05,
+                                            color='blue', fill=True)
+                        ax.add_patch(circle)
+
     # adding labels
     for i in range(0, labels.shape[0]):
         for j in range(0, labels.shape[1]):

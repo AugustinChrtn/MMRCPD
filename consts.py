@@ -11,9 +11,9 @@ all_colors = {
     'black': '#000000',
     'very_light': 	"#F73027",
     'light': '#E64D83',
-    'mid':'#CC66C2',
-    'dark':'#9E68CC',
-    'very_dark':'#69208E'
+    'mid': '#CC66C2',
+    'dark': '#9E68CC',
+    'very_dark': '#69208E'
 }
 
 
@@ -22,6 +22,10 @@ one_step_environments = ['MAB',
                          'FourStates']
 
 multi_model_agents = ['SoftmaxMultiModel',
+                      
+                      'MMRCPD',
+                      'MMRCPDNoReassign',
+                      'MMRCPDSemiJensen',
                       'RmaxExploration',
                       'RmaxContext',
                       'RmaxNovelty',
@@ -36,6 +40,8 @@ multi_model_agents = ['SoftmaxMultiModel',
                       'MMNoMerging',
                       'Baseline']
 
+mM_and_RLCD = multi_model_agents + ['RLCD']
+
 
 colors = {'VI_softmax': 'gray',
           'reward': 'blue',
@@ -47,7 +53,9 @@ colors = {'VI_softmax': 'gray',
           'SoftmaxFiniteHorizon3': 'very_light',
           'SoftmaxFiniteHorizon30': 'very_dark',
 
-          'SoftmaxMultiModel': 'blue',
+          'MMRCPD': 'blue',
+          'MMRCPDNoReassign': 'red',
+          'MMRCPDSemiJensen': 'green',
 
 
           'Baseline': 'blue',
@@ -80,21 +88,23 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'SoftmaxFiniteHorizon20': 'Finite Horizon h=20',
           'SoftmaxFiniteHorizon30': 'Finite Horizon h=30',
 
-          'SoftmaxMultiModel': 'MMRCPD',
+          'MMRCPD': 'MMRCPD',
+          'MMRCPDNoReassign': 'MMRCPD No Reassign',
+          'MMRCPDSemiJensen': 'MMRCPD Semi Jensen',
           'Baseline': 'Baseline',
 
-          'MMLowKL': 'High Creation Δc=0.3',
-          'MMHighKL': 'Low Creation Δc=1.5',
-          'MMLowHorizon': 'Short Horizon h=3',
-          'MMHighHorizon': 'Long Horizon h=20',
-          'MMHighHorizonLowKL': 'Long Horizon High Creation h=20 Δc=0.3',
+          'MMLowKL': 'High Creation (Δc=0.3)',
+          'MMHighKL': 'Low Creation (Δc=1.5)',
+          'MMLowHorizon': 'Short Horizon (h=3)',
+          'MMHighHorizon': 'Long Horizon (h=20)',
+          'MMHighHorizonLowKL': 'Long Horizon, High Creation (h=20 Δc=0.3)',
 
 
-          'MMLowMerging': 'Low Merging Δm=0.01',
-          'MMHighMerging': 'High Merging Δm=0.5',
-          'MMForget': 'No Merging Low Memory Δm=0 maxMod=2',
-          'MMNoMerging': 'No Merging Δm=0',
-          'RLCD': 'Context Detection',
+          'MMLowMerging': 'Low Merging (Δm=0.01)',
+          'MMHighMerging': 'High Merging (Δm=0.3)',
+          'MMForget': 'No Merging, Low Memory (Δm=0, maxMod=2)',
+          'MMNoMerging': 'No Merging (Δm=0)',
+          'RLCD': 'RL with Context Detection',
 
           'nb_model': 'Number of models',
           'nb_creation': 'Number of models created',
@@ -102,37 +112,38 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'nb_forgetting': 'Number of models deleted'}
 
 markers = {'VI_softmax': 'X',
-          'reward': '8',
+           'reward': '8',
 
-          'SoftmaxFiniteHorizon': '*',
-          'SoftmaxFiniteHorizon3': '*',
-          'SoftmaxFiniteHorizon5': '*',
-          'SoftmaxFiniteHorizon10': '*',
-          'SoftmaxFiniteHorizon20': '*',
-          'SoftmaxFiniteHorizon30': '*',
+           'SoftmaxFiniteHorizon': '*',
+           'SoftmaxFiniteHorizon3': '*',
+           'SoftmaxFiniteHorizon5': '*',
+           'SoftmaxFiniteHorizon10': '*',
+           'SoftmaxFiniteHorizon20': '*',
+           'SoftmaxFiniteHorizon30': '*',
 
-          'SoftmaxMultiModel': '8',
-          'Baseline': '8',
+           'MMRCPD': '8',
+           'MMRCPDNoReassign': '8',
+           'MMRCPDSemiJensen': '8',
+           'Baseline': '8',
 
-          'MMLowKL': '8',
-          'MMHighKL': '8',
-          'MMLowHorizon': '8',
-          'MMHighHorizon': '8',
-          'MMHighHorizonLowKL': '8',
-
-
-          'MMLowMerging': '8',
-          'MMHighMerging': '8',
-          'MMForget': '8',
-          'MMNoMerging': '8',
-          'RLCD': '^',
-
-          'nb_model': '8',
-          'nb_creation': '*',
-          'nb_merging': 'X',
-          'nb_forgetting': '^'}
+           'MMLowKL': '*',
+           'MMHighKL': '^',
+           'MMLowHorizon': '*',
+           'MMHighHorizon': '^',
+           'MMHighHorizonLowKL': 'X',
 
 
+           'MMLowMerging': '*',
+           'MMHighMerging': '^',
+           'MMForget': 'X',
+           'MMNoMerging': 'd',
+
+           'RLCD': '^',
+
+           'nb_model': '8',
+           'nb_creation': '*',
+           'nb_merging': 'X',
+           'nb_forgetting': '^'}
 
 
 smoothing_factors = {}

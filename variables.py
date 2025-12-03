@@ -17,7 +17,10 @@ agents = {'VI_softmax': VI_softmax,
           'SoftmaxFiniteHorizon20': SoftmaxFiniteHorizon,
           'SoftmaxFiniteHorizon30': SoftmaxFiniteHorizon,
 
-          'SoftmaxMultiModel': SoftmaxMultiModel,
+          'MMRCPD': SoftmaxMultiModel,
+          'MMRCPDNoReassign': SoftmaxMultiModel,
+          'MMRCPDSemiJensen':SoftmaxMultiModel,
+          
           'Baseline': SoftmaxMultiModel,
           'MMLowKL': SoftmaxMultiModel,
           'MMHighKL': SoftmaxMultiModel,

@@ -1,6 +1,7 @@
 from variables import envs, agents
 from multiprocessing import Pool
 from consts import multi_model_agents, one_step_environments
+from consts import mM_and_RLCD
 import numpy as np
 import time
 
@@ -11,11 +12,11 @@ def play(environment,
 
     name_agent = agent.__class__.__name__
     name_env = environment.__class__.__name__
-    multi_model = name_agent in multi_model_agents
-
+    is_multi_model = name_agent in multi_model_agents
+    is_mm_or_RLCD = name_agent in mM_and_RLCD
     log = {}
 
-    if multi_model:
+    if is_multi_model:
         log = {**log,
                'nb_model': [],
                'nb_creation': [],
@@ -26,6 +27,8 @@ def play(environment,
     start_time = time.time()
     reward_per_episode = []
     time_per_episode = []
+    trial_changes = []
+    init_change = 0
 
     if  name_env in one_step_environments:
         env_is_one_step = True
@@ -61,11 +64,14 @@ def play(environment,
         time_per_episode.append(time_trial)
         environment.new_episode()
         reward_per_episode.append(cumulative_reward)
-        if multi_model:
+        if is_multi_model:
             log['nb_model'].append(agent.total_nb_models)
             log['nb_creation'].append(agent.total_creation)
             log['nb_forgetting'].append(agent.total_forgetting)
             log['nb_merging'].append(agent.total_merging)
+        if is_mm_or_RLCD :
+            trial_changes.append(agent.nb_changes-init_change)
+            init_change = agent.nb_changes
 
     end_time = time.time()
     log['reward'] = reward_per_episode
@@ -73,9 +79,11 @@ def play(environment,
     log['times'] = time_per_episode
     if env_is_one_step:
         log['best_action']=best_action
-    if multi_model:
+    if is_multi_model:
         log['creation_per_state'] = agent.creation_per_state
         log['model_per_state'] = agent.model_per_state
+    if is_mm_or_RLCD :
+        log['all_changes'] = trial_changes
     return log
 
 

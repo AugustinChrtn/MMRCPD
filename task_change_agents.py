@@ -13,7 +13,9 @@ class MBMultiModel():
                  step_update=1,
                  merging_threshold=0.1,
                  delay=10,
-                 nb_max_models=5
+                 nb_max_models=5,
+                 reassign=True,
+                 semi_jensen=False
                  ):
 
         # RL parameters
@@ -31,6 +33,10 @@ class MBMultiModel():
         self.threshold = threshold_VI
         self.max_iterations = max_iterations
         self.step_update = step_update
+
+        # Ablation
+        self.reassign = reassign
+        self.semi_jensen = semi_jensen
 
         # Basic tables
         self.size_environment = len(self.environment.states)
@@ -51,10 +57,10 @@ class MBMultiModel():
         self.nSAS = np.zeros(self.shape_SAS, dtype=int)
 
         # Transitions
-        #self.tSAS = np.ones(self.shape_SAS) / self.size_environment
+        # self.tSAS = np.ones(self.shape_SAS) / self.size_environment
         self.tSAS = np.zeros(self.shape_SAS)
         for action in range(self.size_actions):
-                self.tSAS[:,action,:]=np.eye(self.size_environment)
+            self.tSAS[:, action, :] = np.eye(self.size_environment)
         # Q-Table
         self.Q = np.zeros(self.shape_SA)
 
@@ -87,6 +93,9 @@ class MBMultiModel():
 
         # Contains the last time the model changed for each transition
         self.last_change = np.zeros(self.shape_SA, dtype=int)
+
+        # Contains all the times a change was detected
+        self.nb_changes = 0
 
         # Index to know what index is used for the last counts
         self.rel_ind = np.zeros(self.shape_SA, dtype=int)
@@ -151,6 +160,7 @@ class MBMultiModel():
     def change_model(self, new_nb_model, state, action):
         '''Update all current values to use after a swap.'''
         self.last_change[state][action] = 0
+        self.nb_changes += 1
         self.current_model[state][action] = new_nb_model
 
         new_nSAS = self.all_nSAS[new_nb_model][state][action]
@@ -160,32 +170,6 @@ class MBMultiModel():
 
         self.compute_reward(state, action, new_nb_model)
 
-    # def get_all_stored_transitions(self):
-    #     all_transitions = {}
-    #     for state in range(self.size_environment):
-    #         for action in range(self.size_actions):
-    #             all_transitions[state,action]=[]
-    #             for mod in range(np.shape(self.all_nSA)[0]):
-    #                 if self.all_nSA[mod,state,action] != 0 :
-    #                     index = (mod, state, action)
-    #                     tSAS = self.all_nSAS[index] / self.all_nSA[index]
-    #                     all_transitions[state,action].append(list(tSAS))
-    #     return all_transitions
-    
-
-    
-    # def get_all_transitions(self):
-    #     all_transitions = {}
-    #     for state in range(self.size_environment):
-    #         for action in range(self.size_actions):
-    #             all_transitions[state,action]=[]
-    #             index = (state, action)
-    #             if self.nSA[state][action] != 0 :
-    #                 tSAS = self.nSAS[index] / self.nSA[index]
-    #                 all_transitions[state,action].append(list(tSAS))
-    #     return all_transitions
-
-    
     def learn_the_model(self, old_state, reward, new_state, action):
 
         # General
@@ -304,8 +288,16 @@ class MBMultiModel():
                                                   action,
                                                   current_model)
         distrib = np.zeros(self.size_environment)
+
         for state in last_one_mod:
             distrib[state] += 1
+
+        # rhos = [10/(i+1) for i in range(len(last_one_mod))]
+        # for ind, state in enumerate(last_one_mod):
+        #     distrib[state] += rhos[ind]+1
+
+        # for ind, state in enumerate(last_one_mod):
+        #     distrib[state] += len(last_one_mod)-ind+1
         return distrib
 
     def swap_with_best_model(self,
@@ -403,7 +395,7 @@ class MBMultiModel():
         nSAS_SA = self.nSAS[old_state][action]
         nSA_SA = self.nSA[old_state][action]
         self.tSAS[old_state][action] = nSAS_SA / nSA_SA
-        
+
         if np.sum(nSAS_SA) != nSA_SA:
             print("nSAS", nSAS_SA)
             print("sum nSAS", np.sum(nSAS_SA))
@@ -429,7 +421,7 @@ class MBMultiModel():
 
         #     if self.nSA[old_state][action] >= self.horizon:
         #             self.R_VI[old_state][action] = self.R[old_state][action]
-        #     else : 
+        #     else :
         #         self.R_VI[old_state][action] = np.max(self.R)
         self.R_VI[old_state][action] = self.R[old_state][action]
 
@@ -445,7 +437,11 @@ class MBMultiModel():
                         index_change):
 
         # Get all the states to reassign depending on the index
-        to_reassign = last_count_one_model[:index_change]
+        if self.reassign:
+            to_reassign = last_count_one_model[:index_change]
+
+        else:
+            to_reassign = [last_count_one_model[:index_change][0]]
 
         for ind, state in enumerate(to_reassign):
 
@@ -560,8 +556,7 @@ class MBMultiModel():
 
             norm = self.all_nSA[model_number][old_state][action]
             trans_model = trans_model / norm
-            # last_trans = last_trans / self.horizon
-            nb_experiences = np.sum(last_trans)
+
             last_trans = last_trans/nb_experiences
             kl = self.kl_div(last_trans, trans_model)
             return kl
@@ -631,6 +626,7 @@ class MBMultiModel():
             # The new model will contain the last observation (hence the 1:)
             all_LL[ind] = LL_old[1:]+LL_new[1:]
             # print("LL_new",LL_new)
+
         model_ind, position_change = np.argwhere(all_LL == np.min(all_LL))[0]
         best_model = models_to_test[model_ind]
         position_change += 1
@@ -705,7 +701,7 @@ class MBMultiModel():
 
     # MERGING MODELS
 
-    def from_mod_number_to_jensen_div(self, ind1, ind2, old_state, action):
+    def from_mod_number_to_semi_jensen_div(self, ind1, ind2, old_state, action):
         '''Take two models and compute their jensen-shannon divergence. Used
         to find whether they can be merged.'''
 
@@ -724,6 +720,24 @@ class MBMultiModel():
         jen = 1/2*(jen1+jen2)
         return jen
 
+    def from_mod_number_to_jensen_div(self, ind1, ind2, old_state, action):
+        '''Take two models and compute their jensen-shannon divergence. Used
+        to find whether they can be merged.'''
+
+        count1 = self.all_nSAS[ind1][old_state][action].copy()
+        count2 = self.all_nSAS[ind2][old_state][action].copy()
+
+        norm1 = self.all_nSA[ind1][old_state][action]
+        norm2 = self.all_nSA[ind2][old_state][action]
+
+        distrib1 = count1 / norm1
+        distrib2 = count2 / norm2
+        distrib_sum = 1/2*(distrib1+distrib2)
+
+        jen1 = self.kl_div(distrib1, distrib_sum)
+        jen2 = self.kl_div(distrib2, distrib_sum)
+        jen = 1/2*(jen1+jen2)
+        return jen
 
     def try_to_merge_with_couples(self, old_state, action, couples_to_test):
         all_divergences = []
@@ -736,10 +750,16 @@ class MBMultiModel():
             # div = self.from_mod_number_sym_kl(ind1, ind2, old_state, action)
 
             # Computing the jensen-shannon divergence to check for merging
-            div = self.from_mod_number_to_jensen_div(ind1,
-                                                     ind2,
-                                                     old_state,
-                                                     action)
+            if not self.semi_jensen:
+                div = self.from_mod_number_to_jensen_div(ind1,
+                                                         ind2,
+                                                         old_state,
+                                                         action)
+            else:
+                div = self.from_mod_number_to_semi_jensen_div(ind1,
+                                                              ind2,
+                                                              old_state,
+                                                              action)
 
             all_divergences.append(div)
 
@@ -886,7 +906,9 @@ class EgreedyMultiModel(MBMultiModel):
                  step_update=1,
                  merging_threshold=0.1,
                  delay=10,
-                 nb_max_models=5):
+                 nb_max_models=5,
+                 reassign=True,
+                 semi_jensen=False):
 
         super().__init__(environment,
                          gamma,
@@ -897,7 +919,9 @@ class EgreedyMultiModel(MBMultiModel):
                          step_update,
                          merging_threshold,
                          delay,
-                         nb_max_models)
+                         nb_max_models,
+                         reassign,
+                         semi_jensen)
 
         self.epsilon = epsilon
 
@@ -924,7 +948,9 @@ class SoftmaxMultiModel(MBMultiModel):
                  step_update=1,
                  merging_threshold=0.1,
                  delay=10,
-                 nb_max_models=5):
+                 nb_max_models=5,
+                 reassign=True,
+                 semi_jensen=False):
 
         super().__init__(environment,
                          gamma,
@@ -935,7 +961,9 @@ class SoftmaxMultiModel(MBMultiModel):
                          step_update,
                          merging_threshold,
                          delay,
-                         nb_max_models)
+                         nb_max_models,
+                         reassign,
+                         semi_jensen)
 
         self.beta = beta
 

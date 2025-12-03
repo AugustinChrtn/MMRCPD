@@ -36,7 +36,6 @@ class RLCD:
 
         self.models = []
         self.E = []  # quality traces
-        self.current_model = None
         self.shape_SA = (self.size_environment, self.size_actions)
         self.shape_SAS = (self.size_environment,
                           self.size_actions, self.size_environment)
@@ -44,8 +43,10 @@ class RLCD:
                           self.size_actions, self.horizon)
 
         self._new_model()
+        self.current_model = 0
+        self.nb_changes = 0
 
-        self.step = 0
+        self.counter = 0
 
     def _new_model(self):
         # uniform initialization
@@ -90,7 +91,7 @@ class RLCD:
 
     def choose_action(self, current_state):
 
-        self.step += 1
+        self.counter += 1
         """Softmax decision-making"""
         max_Q_values = np.max(self.Q[current_state])
         q_values_to_use = self.Q[current_state] - max_Q_values
@@ -139,7 +140,6 @@ class RLCD:
         self.R_VI[s, a] = self.R[s, a]
 
     def _value_iteration(self):
-        self.counter += 1
         if self.counter % self.step_update == 0:
             threshold = self.threshold_VI
             converged = False
@@ -198,10 +198,14 @@ class RLCD:
             self.E[i] += self.rho * em
 
         best_idx = np.argmax(self.E)
-
-        if self.E[best_idx] < self.Emin:
+        model_creation = self.E[best_idx] < self.Emin
+        change_model = best_idx != self.current_model
+        if change_model or model_creation :
+            self.nb_changes+=1
+            self.models[self.current_model]["Q"]=self.Q
+        if model_creation:
             self._new_model()
-            # print("created new model at step ", self.step)
-        else:
+            # print("created new model at step ", self.counter)
+        elif change_model :
             self._set_model(best_idx)
             # print("changed current model")

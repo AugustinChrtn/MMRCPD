@@ -549,15 +549,29 @@ def generate_optimal_policies(number=20):
         # transitions_U = np.load('Env/Transitions/Transitions_'+str(i)+'_U.npy')
         _, optimal_policy = value_iteration(i, cond='')
         _, optimal_policy_C = value_iteration(i, cond='_C')
-        _, optimal_policy_D = value_iteration(i,cond='_D')
+        _, optimal_policy_D = value_iteration(i, cond='_D')
         path = 'Env/Optimal_policy/World_'+str(i)+'.pdf'
         path_C = 'Env/Optimal_policy/World_'+str(i)+'_C.pdf'
         path_U = 'Env/Optimal_policy/World_'+str(i)+'_U.pdf'
-        # print(optimal_policy)
+        path_U_blue = 'Env/Optimal_policy/World_'+str(i)+'_U_blue.pdf'
+        path_blue = 'Env/Optimal_policy/World_'+str(i)+'_blue.pdf'
+
+        # % change
+        change_rate = 0.2
+        pattern_array = np.random.choice(a=[True, False],
+                                         size=np.shape(optimal_policy_D),
+                                         p=[change_rate, 1-change_rate])
+        optimal_policy_D_20 = np.where(pattern_array, 
+                                       optimal_policy_D, 
+                                       optimal_policy)
         plot_maze(world, path, arrows=optimal_policy)
         plot_maze(world, path_C, arrows=optimal_policy_C)
         plot_maze(world, path_U, arrows=optimal_policy, 
-                  uncertain=optimal_policy_D)
+                  uncertain=optimal_policy_D_20)
+        plot_maze(world, path_blue, arrows=optimal_policy,
+                  blue_circle=True)
+        plot_maze(world, path_U_blue, arrows=optimal_policy, 
+                  uncertain=optimal_policy_D_20, blue_circle=True)
 
 
 def generate_all(number=10):
