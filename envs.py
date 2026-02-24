@@ -115,7 +115,7 @@ class ChainProblem:
         self.transitions[:, 0] = self.transitions[:, 1].copy()
         self.transitions[:, 1] = tmp_transitions
 
-        self.transitions[not_changing]=not_changing_transi
+        self.transitions[not_changing] = not_changing_transi
 
     def change_random_transition(self):
         # Invert the transition matrix for one random state
@@ -216,7 +216,7 @@ class ChangingCrossEnvironment(CrossEnvironment):
     def new_episode(self):
         if self.step_change is not None:
             change_cond = (self.total_counter //
-                        self.step_change) % len(self.conds)
+                           self.step_change) % len(self.conds)
             if change_cond != self.current_cond:
                 self.nb_changes += 1
                 change_cond = int(change_cond)
@@ -247,7 +247,7 @@ class ChangingCrossEnvironment(CrossEnvironment):
         return self.rewards[self.agent_state], self.agent_state
 
 
-class PartiallyChangingCrossEnvironment():
+class PartiallyChangingMaze():
 
     def __init__(self,
                  number,
@@ -260,28 +260,37 @@ class PartiallyChangingCrossEnvironment():
                             str(number) + typ + '.npy' for typ in conds]
         path_rewards = 'Env/Tables/Rewards_'+str(number) + '.npy'
         path_world = 'Env/Tables/World_'+str(number)+'.npy'
-        all_transitions2 = [np.load(path_transi, allow_pickle=True)
-                            for path_transi in all_paths_transi]
+        all_transi_2D = [np.load(path_transi, allow_pickle=True)
+                         for path_transi in all_paths_transi]
         rewards = np.load(path_rewards, allow_pickle=True)
 
         self.world = np.load(path_world, allow_pickle=True)
         self.world = self.world.flatten()
+
         self.initial_state = np.where(self.world == -2)[0][0]
-        shape_all_transitions2 = np.shape(all_transitions2)
-        self.size = shape_all_transitions2[1]
+        shape_all_transi_2D = np.shape(all_transi_2D)
+        self.size = shape_all_transi_2D[1]
+
         self.number_states = self.size**2
-        self.number_actions = shape_all_transitions2[3]
+        self.number_actions = shape_all_transi_2D[3]
+
+        self.walls = self.world == -1
+        self.no_walls = self.world != -1
+        self.indexes_no_wall = np.arange(self.number_states)
+        self.indexes_no_wall = self.indexes_no_wall[self.no_walls]
+        self.nb_no_wall = len(self.indexes_no_wall)
+
         new_shape = (self.number_states,
                      self.number_actions,
                      self.number_states)
 
-        self.all_transitions2 = []
-        for transi in all_transitions2:
+        self.all_transitions = []
+        for transi in all_transi_2D:
             transi = transi.reshape((new_shape))
-            self.all_transitions2.append(transi)
+            self.all_transitions.append(transi)
 
-        self.all_transitions2 = np.stack(self.all_transitions2)
-        self.transitions = self.all_transitions2[0].copy()
+        self.all_transitions = np.stack(self.all_transitions)
+        self.transitions = self.all_transitions[0].copy()
         self.rewards = rewards.reshape(self.number_states)
         self.nb_changes = 0
         self.step_change = step_change
@@ -295,71 +304,52 @@ class PartiallyChangingCrossEnvironment():
         self.step = 0
         self.agent_state = self.initial_state
 
-        self.current_transis = np.zeros(self.number_states, dtype='int')
+        self.ind_current_transis = np.zeros(self.number_states, dtype='int')
 
         self.conds = conds
-        self.uncertain=uncertain
-
-        self.all_transitions = {}
-        for state in range(self.number_states):
-            for action in range(self.number_actions):
-                key = (state, action)
-                self.all_transitions[key] = []
-                self.all_transitions[key].append(list(self.transitions[key]))
-
-    def twoD_to_oneD(self, state_2D):
-        return state_2D[0]*self.size+state_2D[1]
-
-    def one_to_twoD(self, state_1D):
-        return (state_1D//self.size, state_1D % self.size)
-
-    def check_new_model(self):
-        for state in range(self.number_states):
-            for action in range(self.number_actions):
-                key = (state, action)
-                if list(self.transitions[key]) not in self.all_transitions[key]:
-                    self.all_transitions[key].append(
-                        list(self.transitions[key]))
+        self.uncertain = uncertain
+        self.transitions = self.all_transitions[0]
+        self.transitions[self.walls, :, self.walls] = 1
 
     def new_episode(self):
         if self.step_change is not None:
             change = (self.total_counter % self.step_change) == 0
             if change:
                 self.nb_changes += 1
-                total_elements = self.number_states
                 if self.value_change == 1:
-                    random_indices = np.arange(total_elements)
+                    random_indices = self.indexes_no_wall
                 else:
-                    num_changes = int(self.value_change * self.number_states)
-                    random_indices = np.random.choice(total_elements,
-                                                    num_changes,
-                                                    replace=False)
+                    num_changes = int(self.value_change * self.nb_no_wall)
+                    random_indices = np.random.choice(self.indexes_no_wall,
+                                                      num_changes,
+                                                      replace=False)
+                self.ind_current_transis[random_indices] += 1
+                self.ind_current_transis %= len(self.conds)
+                new_transi = self.all_transitions[self.ind_current_transis,
+                                                  np.arange(
+                                                      self.number_states),
+                                                  :,
+                                                  :]
+                self.transitions = new_transi
+                
+                # changed_set = self.ind_current_transis[random_indices]
+                # new_transi = self.all_transitions[changed_set,
+                #                                   random_indices,
+                #                                   :,
+                #                                   :]
+                # print(np.shape(new_transi))
+                # self.transitions[random_indices] = new_transi
 
-                self.current_transis[random_indices] += 1
-                self.current_transis %= len(self.conds)
-                for index, state in enumerate(random_indices):
-                    new_transitions = self.all_transitions2[self.current_transis[index], state].copy(
-                    )
-                    self.transitions[state] = new_transitions
-                # Putting dummy transitions for walls
-                for state in range(self.number_states):
-                        if np.sum(self.transitions[state])==0:
-                            self.transitions[state,:,state]=1
-                self.check_new_model()
         self.agent_state = self.initial_state
 
     def make_step(self, action):
-        # if self.rewards[self.agent_state]==1:
-        #     self.agent_state = self.initial_state
-        #     return 0, self.agent_state
-
         self.step += 1
         self.total_counter += 1
         transition_probas = self.transitions[self.agent_state][action]
 
-        if self.uncertain :
+        if self.uncertain:
             noise = np.zeros(self.number_states)
-            noise[self.initial_state]=1
+            noise[self.initial_state] = 1
             ratio = 0.05
             transition_probas = (1-ratio)*transition_probas + ratio*noise
 
@@ -404,7 +394,7 @@ class SwappingCrossEnvironment(CrossEnvironment):
     def new_episode(self):
         if self.step_change is not None:
             change_cond = (self.total_counter //
-                        self.step_change) % len(self.conds)
+                           self.step_change) % len(self.conds)
             if change_cond != self.current_cond:
                 self.nb_changes += 1
                 change_cond = int(change_cond)
@@ -474,13 +464,12 @@ class ThreeStates:
         transitions[:, 1, :] = transitions_right
         self.transitions = transitions
 
-
     def new_episode(self):
-        if self.step_change is not None :
+        if self.step_change is not None:
             if self.step % (self.step_change) == 0:
                 self.slip = 1-self.slip
                 self.update_probas()
-                self.best_action = (self.best_action+1)%2
+                self.best_action = (self.best_action+1) % 2
 
         self.agent_state = self.initial_state
 
@@ -515,7 +504,6 @@ class DiffThreeStates:
         self.states = np.arange(self.number_states)
         self.actions = np.arange(self.number_actions)
         self.step = 0
-
 
         self.initial_state = 0
         self.agent_state = self.initial_state
@@ -552,8 +540,8 @@ class DiffThreeStates:
     def new_episode(self):
         if self.step_change is not None:
             if self.step % (self.step_change) == 0:
-                self.cond+=1
-                self.cond%=len(self.probas)
+                self.cond += 1
+                self.cond %= len(self.probas)
                 self.update_probas()
 
         self.agent_state = self.initial_state
@@ -573,8 +561,6 @@ class DiffThreeStates:
         else:
             reward = self.rewards[self.agent_state]
         return reward, self.agent_state
-    
-
 
 
 class FourStates:
@@ -592,7 +578,6 @@ class FourStates:
         self.actions = np.arange(self.number_actions)
         self.step = 0
         self.best_action = 1
-
 
         self.initial_state = 0
         self.agent_state = self.initial_state
@@ -622,10 +607,10 @@ class FourStates:
                                 self.number_actions,
                                 self.number_states))
 
-        if self.swap : 
+        if self.swap:
             transitions[:, 0, :] = transitions_left
             transitions[:, 1, :] = transitions_right
-        else :
+        else:
             transitions[:, 0, :] = transitions_right
             transitions[:, 1, :] = transitions_left
         self.transitions = transitions
@@ -638,7 +623,7 @@ class FourStates:
             if self.step % (self.step_change) == 0:
                 self.swap = not self.swap
                 self.update_probas()
-                self.best_action = (self.best_action+1)%2
+                self.best_action = (self.best_action+1) % 2
 
         self.agent_state = self.initial_state
 

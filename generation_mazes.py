@@ -1,6 +1,6 @@
 import numpy as np
 from const_maze import reward_distance, wall_rate, size
-from const_maze import pattern, reward_value
+from const_maze import pattern, reward_value, probas_transis
 from plots import plot_maze, plot_one_transition
 import sys
 sys.setrecursionlimit(5000)
@@ -29,10 +29,20 @@ def world_with_walls(size=size, wall_rate=wall_rate, pattern=pattern):
     procedure'''
     states = np.zeros((size, size))
     # 1st phase: generate walls randomly
+    
+    # nb_walls = int(wall_rate * size * size)
+    # walls = np.random.choice(size*size,
+    #                             nb_walls,
+    #                             replace=False)
+    # states = np.zeros(size**2)
+    # states[walls] = -1
+    # states = states.reshape((size,size))
+
     for i in range(size):
         for j in range(size):
             if np.random.random() < wall_rate:
                 states[i, j] = -1
+
     # 2nd phase: If walls are closeby, add a wall
     states = connexe_wall(states, size, min_rate=0)
     for i in range(2):
@@ -245,7 +255,7 @@ def generate_obstructed_worlds(number=20):
         plot_maze(world, path, world_distance)
 
 
-def generate_uncertainty():
+def generate_uncertainty(probabilities):
 
     # probas =[np.random.randint(1,100),
     #          np.random.randint(100,1000),
@@ -254,12 +264,12 @@ def generate_uncertainty():
     #          np.random.randint(1,100),
     #          np.random.randint(1,1000)]
 
-    probas = [0.05,
-              0.05,
-              0.75,
-              0.05,
-              0.05,
-              0.05]
+    # probas = [0.0,
+    #           0.0,
+    #           0.9,
+    #           0.0,
+    #           0.0,
+    #           0.0]
 
     # probas = [0.1*np.random.random(),
     #           0.1*np.random.random(),
@@ -277,7 +287,7 @@ def generate_uncertainty():
     #           np.random.random(),
     #           2*np.random.random()]
 
-    probas = np.array(probas)/np.sum(probas)
+    probas = np.array(probabilities)/np.sum(probabilities)
 
     return probas
 
@@ -296,7 +306,7 @@ def incertitude_transition(world):
             if world[row][col] != -1:
                 for action in range(4):
 
-                    probas = generate_uncertainty()
+                    probas = generate_uncertainty(probabilities=probas_transis)
 
                     row_0 = row == 0
                     col_0 = col == 0
@@ -558,9 +568,22 @@ def generate_optimal_policies(number=20):
 
         # % change
         change_rate = 0.2
-        pattern_array = np.random.choice(a=[True, False],
-                                         size=np.shape(optimal_policy_D),
-                                         p=[change_rate, 1-change_rate])
+        nb_states = len(world.flatten())
+
+        no_walls = world.flatten() != -1
+
+        indexes_no_wall = np.arange(nb_states)
+        indexes_no_wall = indexes_no_wall[no_walls]
+        nb_states_no_wall = len(indexes_no_wall)
+
+        num_changes = int(change_rate * nb_states_no_wall)
+        random_indices = np.random.choice(indexes_no_wall,
+                                            num_changes,
+                                            replace=False)
+        pattern_array = np.zeros(nb_states, dtype=bool)
+        pattern_array[random_indices] = True
+        pattern_array = pattern_array.reshape(np.shape(world))
+
         optimal_policy_D_20 = np.where(pattern_array, 
                                        optimal_policy_D, 
                                        optimal_policy)

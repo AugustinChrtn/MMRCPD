@@ -1,7 +1,7 @@
 from agents import SoftmaxFiniteHorizon, VI_softmax
 from task_change_agents import SoftmaxMultiModel
 from envs import ChainProblem, ChangingCrossEnvironment, ThreeStates, MAB, DiffThreeStates, FourStates
-from envs import PartiallyChangingCrossEnvironment
+from envs import PartiallyChangingMaze
 from rlcd import RLCD
 
 # ---------------------------------------------------------------------------- #
@@ -46,7 +46,7 @@ envs = {"ChainProblem": ChainProblem,
         "ChangingCrossEnvironment": ChangingCrossEnvironment,
         "ThreeStates": ThreeStates,
         "MAB": MAB,
-        "PartiallyChangingCrossEnvironment": PartiallyChangingCrossEnvironment,
+        "PartiallyChangingMaze": PartiallyChangingMaze,
         'DiffThreeStates': DiffThreeStates,
         "FourStates": FourStates}
 
@@ -74,7 +74,7 @@ params_diff_three_states = {'probas': [[0.8, 0.9], [0.1, 0.2]],
 
 env_to_param = {"ChainProblem": params_chain,
                 "ChangingCrossEnvironment": params_cross,
-                "PartiallyChangingCrossEnvironment": params_partial_cross,
+                "PartiallyChangingMaze": params_partial_cross,
                 "ThreeStates": params_three_states,
                 "FourStates": params_three_states}
 

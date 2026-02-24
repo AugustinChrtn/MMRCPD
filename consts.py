@@ -97,13 +97,13 @@ labels = {'VI_softmax': 'Infinite Horizon',
           'MMHighKL': 'Low Creation (Δc=1.5)',
           'MMLowHorizon': 'Short Horizon (h=3)',
           'MMHighHorizon': 'Long Horizon (h=20)',
-          'MMHighHorizonLowKL': 'Long Horizon, High Creation (h=20 Δc=0.3)',
+          'MMHighHorizonLowKL': 'Long Horizon, High Creation (h=20, Δc=0.3)',
 
 
           'MMLowMerging': 'Low Merging (Δm=0.01)',
-          'MMHighMerging': 'High Merging (Δm=0.3)',
-          'MMForget': 'No Merging, Low Memory (Δm=0, maxMod=2)',
-          'MMNoMerging': 'No Merging (Δm=0)',
+          'MMHighMerging': 'High Creation and Merging (Δc=0.3, Δm=0.3)',
+          'MMForget': 'High Creation, No Merging, High Forget (Δc=0.3, Δm=0, maxMod=2)',
+          'MMNoMerging': 'High Creation, No Merging (Δc=0.3, Δm=0)',
           'RLCD': 'RL with Context Detection',
 
           'nb_model': 'Number of models',
@@ -127,8 +127,8 @@ markers = {'VI_softmax': 'X',
            'Baseline': '8',
 
            'MMLowKL': '*',
-           'MMHighKL': '^',
-           'MMLowHorizon': '*',
+           'MMHighKL': 'd',
+           'MMLowHorizon': '.',
            'MMHighHorizon': '^',
            'MMHighHorizonLowKL': 'X',
 

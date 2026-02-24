@@ -443,6 +443,11 @@ class MBMultiModel():
         else:
             to_reassign = [last_count_one_model[:index_change][0]]
 
+        # print("to_reassign", to_reassign)
+        # print("last_count_one_model", last_count_one_model)
+        # print("old_model_obs", self.all_nSAS[former_model][old_state][action])
+        # print("new_mod_obs", self.all_nSAS[new_model][old_state][action])
+
         for ind, state in enumerate(to_reassign):
 
             # Update count of the old model
@@ -553,12 +558,17 @@ class MBMultiModel():
         if nb_experiences < self.delay:
             return 0
         else:
-
             norm = self.all_nSA[model_number][old_state][action]
-            trans_model = trans_model / norm
 
-            last_trans = last_trans/nb_experiences
-            kl = self.kl_div(last_trans, trans_model)
+            # if model_number != self.current_model[old_state][action] :
+            #     trans_model += last_trans.astype(int)
+            #     norm+= nb_experiences
+
+            trans_model_norm = trans_model / norm
+
+            last_trans_norm = last_trans/nb_experiences
+            kl = self.kl_div(last_trans_norm, trans_model_norm)
+
             return kl
 
     def kl_div(self, p, q, epsilon=1e-5):

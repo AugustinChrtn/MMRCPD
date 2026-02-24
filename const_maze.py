@@ -10,6 +10,12 @@ pattern = {(i, j): 0 for i in range(min_pattern, max_pattern+1)
            for j in range(min_pattern, max_pattern+1)}
 
 
+probas_transis = [0.05,
+              0.05,
+              0.75,
+              0.05,
+              0.05,
+              0.05]
 
 pattern={}
 # for i in [min_pattern, max_pattern]:

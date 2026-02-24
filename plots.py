@@ -1,7 +1,6 @@
 from consts import all_colors, colors, labels, markers
 from consts import one_step_environments, multi_model_agents
 from consts import mM_and_RLCD
-from matplotlib.ticker import MaxNLocator
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -115,7 +114,7 @@ def plot_curves(results,
 
         counter += 1
         if counter == 1:
-            total_steps = len(res_to_plot[0]) * steps
+            total_steps = len(res_to_plot[0])
             # ensure the change plot goes to the right axis
             plt.sca(ax_right)
             plot_change(change_rate, total_steps)
@@ -257,7 +256,8 @@ def plot_four_models(models,
                      nb_trials,
                      change_rate,
                      nb_iters,
-                     title):
+                     title,
+                     legend=True):
 
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 
@@ -310,7 +310,8 @@ def plot_four_models(models,
     handles, labels = axs[0, 0].get_legend_handles_labels()
     # Create a single legend below all subplots
     odd = len(labels) % 2
-    fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
+    if legend :
+        fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
 
     # Adjust layout to make space for the legend
 
@@ -320,7 +321,7 @@ def plot_four_models(models,
                         top=0.9, bottom=bottom_adjust,
                         wspace=0.3, hspace=0.3)
     # fig.tight_layout(pad=5.0)
-    plt.savefig('results/sum_up_models'+title+'.pdf', bbox_inches='tight')
+    plt.savefig('results/sum_up_models'+title+str(legend)+'.pdf', bbox_inches='tight')
     plt.close()
 
 
@@ -387,6 +388,7 @@ def plot_four(dic_of_rewards,
     # Create a single legend below all subplots
     odd = len(labels) % 2
     fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
+
 
     # Adjust layout to make space for the legend
 
@@ -724,25 +726,27 @@ def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation
     general_performance(all_rewards, title)
 
     plot_four(actions_or_rewards,
-              all_times,
-              steps,
-              trials,
-              change_rate,
-              nb_iters,
-              title,
-              xlabel=xlabel,
-              ylabel_res=spec_ylabel)
+                all_times,
+                steps,
+                trials,
+                change_rate,
+                nb_iters,
+                title,
+                xlabel=xlabel,
+                ylabel_res=spec_ylabel)
 
     if len(all_current_models.keys()) > 0:
-        plot_four_models(all_current_models,
-                         all_models_created,
-                         all_models_merged,
-                         all_models_forgotten,
-                         steps,
-                         trials,
-                         change_rate,
-                         nb_iters,
-                         title)
+        for legend_or_not in [True, False]:
+            plot_four_models(all_current_models,
+                            all_models_created,
+                            all_models_merged,
+                            all_models_forgotten,
+                            steps,
+                            trials,
+                            change_rate,
+                            nb_iters,
+                            title,
+                            legend=legend_or_not)
         
     plot_two(actions_or_rewards,
                 steps,
