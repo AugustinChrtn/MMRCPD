@@ -189,6 +189,11 @@ def one_parameter_play_function(params):
             "seed": params["seed"]
         })
 
+        #check for the maze number for maze exp
+        if 'number' in params['env_param']:
+            r['maze_number'] = params['env_param']['number']
+    
+
     return rows, arrays, trial_id
 
 
@@ -271,22 +276,17 @@ def main_function(agent_to_test,
         "runtime": runtime
     }
 
-    # identifier based on current time
-    #os.makedirs(save_dir, exist_ok=True)
-    
-    # directory containing all results and plots
-    # stamp = str(round(time.time(),3))
-    # run_dir = f"{save_dir}/run_{stamp}"
-
     run_dir = get_run_dir(save_dir, env_to_test)
     os.makedirs(run_dir, exist_ok=True)
 
-    # parameters.update(**{"run_dir":run_dir})
-    
+
     # ---------- CSV ----------
+    init_compression = time.time()
     df.to_csv(f"{run_dir}/episode_results.csv.gz", 
                 index=False,
                 compression="gzip")
+    
+    print("Compression time to .csv", time.time()-init_compression)
 
     # ---------- ARRAYS ----------
     flat_arrays = {}

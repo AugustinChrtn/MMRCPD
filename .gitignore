@@ -3,7 +3,6 @@ plots/
 data/
 distrib/
 tests/
-results/
 .vscode
 results/*.svg
 results/*.npy

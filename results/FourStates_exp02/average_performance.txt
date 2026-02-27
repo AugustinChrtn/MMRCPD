@@ -1,0 +1,8 @@
+VI_softmax, mean: 0.504222; std: 0.01751218764175397
+SoftmaxFiniteHorizon3, mean: 0.573104; std: 0.01920117663061301
+SoftmaxFiniteHorizon5, mean: 0.609388; std: 0.023538510063298417
+SoftmaxFiniteHorizon10, mean: 0.665172; std: 0.030430813594118703
+SoftmaxFiniteHorizon20, mean: 0.611866; std: 0.03391454030353354
+SoftmaxFiniteHorizon30, mean: 0.512854; std: 0.03587785785132663
+RLCD, mean: 0.877496; std: 0.0317512516918625
+MMRCPD, mean: 0.880878; std: 0.03269701998653702

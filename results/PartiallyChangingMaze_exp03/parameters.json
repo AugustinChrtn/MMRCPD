@@ -1,0 +1,193 @@
+{
+  "trials": 1000,
+  "max_step": 100,
+  "env_name": "PartiallyChangingMaze",
+  "agents": [
+    "VI_softmax",
+    "SoftmaxFiniteHorizon3",
+    "SoftmaxFiniteHorizon5",
+    "SoftmaxFiniteHorizon10",
+    "SoftmaxFiniteHorizon20",
+    "SoftmaxFiniteHorizon30",
+    "RLCD",
+    "MMRCPD"
+  ],
+  "nb_iters": 20,
+  "starting_seed": 6001,
+  "env_param": [
+    {
+      "number": 0,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 1,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 2,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 3,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 4,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 5,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 6,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 7,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 8,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    },
+    {
+      "number": 9,
+      "step_change": 2000,
+      "conds": [
+        "",
+        "_D"
+      ],
+      "value_change": 0.2,
+      "uncertain": true
+    }
+  ],
+  "agent_param": {
+    "VI_softmax": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95
+    },
+    "SoftmaxFiniteHorizon3": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 3
+    },
+    "SoftmaxFiniteHorizon5": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 5
+    },
+    "SoftmaxFiniteHorizon10": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 10
+    },
+    "SoftmaxFiniteHorizon20": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 20
+    },
+    "SoftmaxFiniteHorizon30": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 30
+    },
+    "RLCD": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 50,
+      "Emin": -0.05,
+      "rho": 0.2
+    },
+    "MMRCPD": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 10,
+      "kl_threshold": 1,
+      "merging_threshold": 0.1,
+      "delay": 1,
+      "nb_max_models": 5,
+      "reassign": true,
+      "semi_jensen": false
+    }
+  },
+  "runtime": 6324.256541490555
+}

@@ -1,0 +1,82 @@
+{
+  "trials": 500,
+  "max_step": 50,
+  "env_name": "ChainProblem",
+  "agents": [
+    "Baseline",
+    "MMHighMerging",
+    "MMForget",
+    "MMNoMerging"
+  ],
+  "nb_iters": 100,
+  "starting_seed": 12001,
+  "env_param": [
+    {
+      "slip": 0.1,
+      "size_chain": 5,
+      "step_change": 500,
+      "changes": [
+        "S"
+      ]
+    }
+  ],
+  "agent_param": {
+    "Baseline": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 10,
+      "kl_threshold": 1.0,
+      "merging_threshold": 0.1,
+      "delay": 1,
+      "nb_max_models": 5,
+      "reassign": true,
+      "semi_jensen": false
+    },
+    "MMHighMerging": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 10,
+      "kl_threshold": 0.3,
+      "merging_threshold": 0.3,
+      "delay": 1,
+      "nb_max_models": 5,
+      "reassign": true,
+      "semi_jensen": false
+    },
+    "MMForget": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 10,
+      "kl_threshold": 0.3,
+      "merging_threshold": 0.0,
+      "delay": 1,
+      "nb_max_models": 2,
+      "reassign": true,
+      "semi_jensen": false
+    },
+    "MMNoMerging": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 10,
+      "kl_threshold": 0.3,
+      "merging_threshold": 0.0,
+      "delay": 1,
+      "nb_max_models": 5,
+      "reassign": true,
+      "semi_jensen": false
+    }
+  },
+  "runtime": 616.65882396698
+}

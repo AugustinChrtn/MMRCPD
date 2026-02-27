@@ -1,0 +1,97 @@
+{
+  "trials": 200,
+  "max_step": 1,
+  "env_name": "FourStates",
+  "agents": [
+    "VI_softmax",
+    "SoftmaxFiniteHorizon3",
+    "SoftmaxFiniteHorizon5",
+    "SoftmaxFiniteHorizon10",
+    "SoftmaxFiniteHorizon20",
+    "SoftmaxFiniteHorizon30",
+    "RLCD",
+    "MMRCPD"
+  ],
+  "nb_iters": 2000,
+  "starting_seed": 2001,
+  "env_param": [
+    {
+      "step_change": null,
+      "slip": 0.1
+    }
+  ],
+  "agent_param": {
+    "VI_softmax": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95
+    },
+    "SoftmaxFiniteHorizon3": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 3
+    },
+    "SoftmaxFiniteHorizon5": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 5
+    },
+    "SoftmaxFiniteHorizon10": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 10
+    },
+    "SoftmaxFiniteHorizon20": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 20
+    },
+    "SoftmaxFiniteHorizon30": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 30
+    },
+    "RLCD": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 50,
+      "Emin": -0.05,
+      "rho": 0.4
+    },
+    "MMRCPD": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 5,
+      "gamma": 0.95,
+      "horizon": 3,
+      "kl_threshold": 0.5,
+      "merging_threshold": 0.3,
+      "delay": 1,
+      "nb_max_models": 5,
+      "reassign": true,
+      "semi_jensen": false
+    }
+  },
+  "runtime": 58.3684606552124
+}

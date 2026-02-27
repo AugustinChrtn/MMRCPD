@@ -1,0 +1,65 @@
+{
+  "trials": 2000,
+  "max_step": 20,
+  "env_name": "ChainProblem",
+  "agents": [
+    "VI_softmax",
+    "SoftmaxFiniteHorizon5",
+    "RLCD",
+    "MMRCPD"
+  ],
+  "nb_iters": 100,
+  "starting_seed": 9001,
+  "env_param": [
+    {
+      "slip": 0.1,
+      "size_chain": 5,
+      "step_change": 1000,
+      "changes": [
+        "T minus S"
+      ]
+    }
+  ],
+  "agent_param": {
+    "VI_softmax": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95
+    },
+    "SoftmaxFiniteHorizon5": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 5
+    },
+    "RLCD": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 20,
+      "Emin": -0.05,
+      "rho": 0.3
+    },
+    "MMRCPD": {
+      "threshold_VI": 0.001,
+      "max_iterations": 1000,
+      "step_update": 1,
+      "beta": 3,
+      "gamma": 0.95,
+      "horizon": 5,
+      "kl_threshold": 1.0,
+      "merging_threshold": 0.1,
+      "delay": 1,
+      "nb_max_models": 5,
+      "reassign": true,
+      "semi_jensen": false
+    }
+  },
+  "runtime": 610.4830102920532
+}
