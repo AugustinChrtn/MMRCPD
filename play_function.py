@@ -8,6 +8,7 @@ import pandas as pd
 import json
 import os
 
+
 def get_run_dir(base_dir, env, cond=None):
 
     prefix = env if cond is None else f"{env}_{cond}"
@@ -24,7 +25,6 @@ def get_run_dir(base_dir, env, cond=None):
 
     next_id = max(runs)+1 if runs else 1
     return os.path.join(base_dir, f"{prefix}_exp{next_id:02d}")
-
 
 
 def play(environment,
@@ -83,7 +83,7 @@ def play(environment,
         # Adding res in one step environment
         if env_is_one_step:
             result["best_action"] = best_action_count / max_step
-        else :
+        else:
             result["best_action"] = None
 
         # Adding res for muti model agents
@@ -189,10 +189,9 @@ def one_parameter_play_function(params):
             "seed": params["seed"]
         })
 
-        #check for the maze number for maze exp
+        # check for the maze number for maze exp
         if 'number' in params['env_param']:
             r['maze_number'] = params['env_param']['number']
-    
 
     return rows, arrays, trial_id
 
@@ -247,7 +246,6 @@ def main_function(agent_to_test,
     runtime = time.time() - start_time
     print("Computation time:", runtime)
 
-    
     all_rows = []
     all_arrays = {}
 
@@ -258,7 +256,7 @@ def main_function(agent_to_test,
             all_arrays[trial_id] = arrays
 
     df = pd.DataFrame(all_rows)
-    
+
     # Round some values to lower storing cost
     df = df.round({
         "time (ms)": 5,
@@ -279,13 +277,12 @@ def main_function(agent_to_test,
     run_dir = get_run_dir(save_dir, env_to_test)
     os.makedirs(run_dir, exist_ok=True)
 
-
     # ---------- CSV ----------
     init_compression = time.time()
-    df.to_csv(f"{run_dir}/episode_results.csv.gz", 
-                index=False,
-                compression="gzip")
-    
+    df.to_csv(f"{run_dir}/episode_results.csv.gz",
+              index=False,
+              compression="gzip")
+
     print("Compression time to .csv", time.time()-init_compression)
 
     # ---------- ARRAYS ----------

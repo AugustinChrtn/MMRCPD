@@ -331,7 +331,7 @@ class PartiallyChangingMaze():
                                                   :,
                                                   :]
                 self.transitions = new_transi
-                
+
                 # changed_set = self.ind_current_transis[random_indices]
                 # new_transi = self.all_transitions[changed_set,
                 #                                   random_indices,

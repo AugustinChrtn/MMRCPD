@@ -22,7 +22,6 @@ one_step_environments = ['MAB',
                          'FourStates']
 
 multi_model_agents = ['SoftmaxMultiModel',
-                      
                       'MMRCPD',
                       'MMRCPDNoReassign',
                       'MMRCPDSemiJensen',

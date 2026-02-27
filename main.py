@@ -1,3 +1,4 @@
+import os
 from play_function import main_function
 from plots import get_plot_from_saved
 
@@ -88,34 +89,38 @@ def set_param_agent(params_shared={},
 def generate_seed(number_of_the_experiment):
     return 1000*number_of_the_experiment+1
 
+# ---------------------------------------------------------------------------- #
+# Example to generate the plots
+# ---------------------------------------------------------------------------- #
+
+# all_names = []
+# init_dir = 'results'
+# for e in os.scandir(init_dir):
+#     if e.is_dir():
+#         all_names.append(init_dir+'/'+e.name)
+# for save_dir in all_names:
+#     if '01' in save_dir and 'Chain' in save_dir:
+#         suptitle = "Local volatility"
+#     elif '02' in save_dir and 'Chain' in save_dir:
+#         suptitle = "Global volatility"
+#     elif '03' in save_dir and 'Chain' in save_dir:
+#         suptitle = "All-but-one volatility"
+#     elif '01' in save_dir:
+#         suptitle = "Uncertain variation"
+#     elif '02' in save_dir:
+#         suptitle = "Volatile variation"
+#     elif '03' in save_dir:
+#         suptitle = 'Uncertain and Volatile variation'
+#     elif '04' in save_dir:
+#         suptitle = 'Retrospective change detection'
+#     else:
+#         suptitle = ''
+#     get_plot_from_saved(save_dir, suptitle=suptitle)
+
 
 # ---------------------------------------------------------------------------- #
 # Experiments
 # ---------------------------------------------------------------------------- #
-all_names = []
-import os 
-init_dir = 'results'
-for e in os.scandir(init_dir):
-    if e.is_dir():
-            all_names.append(init_dir+'/'+e.name)
-for save_dir in all_names :
-    if '01' in save_dir and 'Chain' in save_dir :
-        suptitle = "Local volatility"
-    elif '02' in save_dir and 'Chain' in save_dir :
-        suptitle = "Global volatility"
-    elif '03' in save_dir and 'Chain' in save_dir :
-        suptitle = "All-but-one volatility"
-    elif '01' in save_dir :
-        suptitle ="Uncertain variation"
-    elif '02' in save_dir:
-        suptitle ="Volatile variation"
-    elif '03' in save_dir:
-        suptitle ='Uncertain and Volatile variation'
-    elif '04' in save_dir:
-        suptitle ='Retrospective change detection'
-    else : 
-        suptitle = ''
-    get_plot_from_saved(save_dir, suptitle=suptitle)
 
 
 # Indicate all the experiments you would like to launch (check below)
@@ -125,7 +130,7 @@ experiments_to_launch = []
 nb_proc = 10
 
 # ---------------------------------------------------------------------------- #
-# The advantage of change detection method
+# The advantage of using change detection methods
 # ---------------------------------------------------------------------------- #
 
 # ---------------------------------------------------------------------------- #
@@ -172,18 +177,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle="Volatile variation")
 
@@ -206,18 +211,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle="Uncertain variation")
 
@@ -240,18 +245,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle="Uncertain and Volatile variation")
 
@@ -285,7 +290,6 @@ agents_to_test = ['VI_softmax',
 #                   'SoftmaxFiniteHorizon3']
 
 
-
 play_parameters = {'trials': 1000,
                    'max_step': 100}
 
@@ -298,7 +302,7 @@ for i in range(nb_mazes):
                            'conds': ['', '_D'],
                            'value_change': 0.2,
                            'uncertain': False})
-    
+
 params_shared = {"threshold_VI": 1e-3,
                  "max_iterations": 1000,
                  "step_update": 1,
@@ -307,7 +311,7 @@ params_shared = {"threshold_VI": 1e-3,
 
 
 params_multi_model = {"horizon": 10,
-                      "kl_threshold":1,
+                      "kl_threshold": 1,
                       "merging_threshold": 0.1,
                       "delay": 1,
                       "nb_max_models": 5}
@@ -320,18 +324,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle="Volatile variation")
 
@@ -362,18 +366,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='Uncertain variation')
 
@@ -401,18 +405,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='Uncertain and volatile variation')
 
@@ -464,18 +468,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='Local volatility')
 
@@ -497,18 +501,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='Global volatility')
 
@@ -530,18 +534,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='All-but-one volatility')
 
@@ -557,8 +561,8 @@ nb_tests = 200
 env_to_test = 'ChainProblem'
 
 agents_to_test = [
-                  'MMRCPD',
-                  'MMRCPDNoReassign']
+    'MMRCPD',
+    'MMRCPDNoReassign']
 
 play_parameters = {'trials': 1000,
                    'max_step': 20}
@@ -589,18 +593,18 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='Retrospective change detection')
 
@@ -647,20 +651,20 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
-    get_plot_from_saved(save_dir,suptitle=None)
+    get_plot_from_saved(save_dir, suptitle=None)
 
 
 # ---------------------------------------------------------------------------- #
@@ -687,21 +691,20 @@ agent_parameters = set_param_agent(params_shared,
                                    params_multi_model,
                                    params_rlcd)
 
-agent_parameters = {agent_name: agent_parameters.get(agent_name) 
+agent_parameters = {agent_name: agent_parameters.get(agent_name)
                     for agent_name in agents_to_test}
 
 if nb_exp in experiments_to_launch and __name__ == '__main__':
     save_dir = main_function(agents_to_test,
-                               env_to_test,
-                               nb_tests,
-                               play_parameters,
-                               starting_seed,
-                               env_parameters,
-                               agent_parameters,
-                               nb_processes=nb_proc)
+                             env_to_test,
+                             nb_tests,
+                             play_parameters,
+                             starting_seed,
+                             env_parameters,
+                             agent_parameters,
+                             nb_processes=nb_proc)
 
     get_plot_from_saved(save_dir, suptitle='')
-
 
 
 # # ---------------------------------------------------------------------------- #

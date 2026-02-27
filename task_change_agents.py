@@ -531,7 +531,7 @@ class MBMultiModel():
             count_last = self.last_to_count(size, last_new_index)
 
             distrib_new_count = np.array(new_count)/np.sum(new_count)
-            if norm:  # Normalize the distribution, not used with log likelihood.
+            if norm:  # Normalize the distrib, not used with log likelihood.
                 distrib_last = count_last/np.sum(count_last)
             else:
                 distrib_last = count_last

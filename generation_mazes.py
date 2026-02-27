@@ -29,7 +29,7 @@ def world_with_walls(size=size, wall_rate=wall_rate, pattern=pattern):
     procedure'''
     states = np.zeros((size, size))
     # 1st phase: generate walls randomly
-    
+
     # nb_walls = int(wall_rate * size * size)
     # walls = np.random.choice(size*size,
     #                             nb_walls,
@@ -474,7 +474,6 @@ def generate_pattern_uncertain(number=20):
         np.save('Env/Transitions/Transitions_'+str(i)+'_U.npy', transitions)
 
 
-
 def generate_transitions_obstructed(number=20):
     for i in range(number):
         transitions = np.load(
@@ -578,22 +577,22 @@ def generate_optimal_policies(number=20):
 
         num_changes = int(change_rate * nb_states_no_wall)
         random_indices = np.random.choice(indexes_no_wall,
-                                            num_changes,
-                                            replace=False)
+                                          num_changes,
+                                          replace=False)
         pattern_array = np.zeros(nb_states, dtype=bool)
         pattern_array[random_indices] = True
         pattern_array = pattern_array.reshape(np.shape(world))
 
-        optimal_policy_D_20 = np.where(pattern_array, 
-                                       optimal_policy_D, 
+        optimal_policy_D_20 = np.where(pattern_array,
+                                       optimal_policy_D,
                                        optimal_policy)
         plot_maze(world, path, arrows=optimal_policy)
         plot_maze(world, path_C, arrows=optimal_policy_C)
-        plot_maze(world, path_U, arrows=optimal_policy, 
+        plot_maze(world, path_U, arrows=optimal_policy,
                   uncertain=optimal_policy_D_20)
         plot_maze(world, path_blue, arrows=optimal_policy,
                   blue_circle=True)
-        plot_maze(world, path_U_blue, arrows=optimal_policy, 
+        plot_maze(world, path_U_blue, arrows=optimal_policy,
                   uncertain=optimal_policy_D_20, blue_circle=True)
 
 
