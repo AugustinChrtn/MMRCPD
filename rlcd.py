@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# Context-based agent from Da Silva et al. (2006), coded from pseudo-code
 class RLCD:
     def __init__(self, environment,
                  horizon=10,
