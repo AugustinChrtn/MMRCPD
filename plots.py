@@ -672,130 +672,195 @@ def plot_boxplot_time(results,
     plt.savefig(os.path.join(save_path, 'Total_times.pdf'))
     plt.close()
 
-# def plot_avg_over_time(dic_of_values,
-#                        nb_steps,
-#                        nb_trials,
-#                        change_rate,
-#                        nb_iters,
-#                        title='',
-#                        xlabel='Number of task changes',
-#                        ylabel='Rewards',
-#                        legend=True,
-#                        ax=None,
-#                        save=True,
-#                        multiply=False,
-#                        grid=False):
-#     if ax is None:
-#         fig, ax = plt.subplots()
-#     all_means = {}
-#     if change_rate % nb_steps != 0:
-#         print("Cannot plot, change_rate % nb_steps != 0.""")
-#         return None
-#     trials_each_change = int(change_rate//nb_steps)
-#     nb_values = nb_iters*trials_each_change
-#     nb_changes = nb_trials//trials_each_change
-#     nb_values = nb_iters
-#     for agent in dic_of_values.keys():
-#         all_means[agent] = np.zeros((nb_iters, nb_changes))
-#         values = np.array(dic_of_values[agent])
-#         for i in range(nb_changes):
-#             starting_i = i*trials_each_change
-#             r_change = values[:, starting_i:starting_i+trials_each_change]
-#             if multiply:
-#                 r_change *= 1e3/nb_steps
-#             mean = np.mean(r_change, axis=1)
-#             all_means[agent][:, i] = mean
-
-#         array_mean = all_means[agent]
-#         array_std = np.std(array_mean, axis=0)
-#         array_mean = np.mean(array_mean, axis=0)
-#         array_CI = 1.96*array_std / np.sqrt(nb_values)
-#         x_axis = np.arange(0, nb_changes)
-#         ax.plot(x_axis,
-#                 array_mean,
-#                 label=labels[agent],
-#                 color=all_colors[colors[agent]],
-#                 marker=markers[agent],
-#                 markersize=4)
-#         ax.fill_between(x_axis,
-#                         array_mean-array_CI,
-#                         array_mean+array_CI,
-#                         color=all_colors[colors[agent]],
-#                         alpha=0.15)
-
-#     ax.set_ylabel(ylabel, fontweight='bold')
-#     ax.set_xlabel(xlabel, fontweight='bold')
-#     # ax.yaxis.get_major_locator().set_params(integer=True)
-#     ax.xaxis.get_major_locator().set_params(integer=True)
-#     if legend:
-#         ax.legend(loc='lower center')
-#     if title == '':
-#         title = str(time.time())
-#     if grid:
-#         ax.grid(alpha=0.2)
-#     if save:
-#         plt.savefig('results/'+title+'.pdf')
-#         plt.close()
+# ---------------------------------------------------------------------------- #
+# Maze Plots
+# ---------------------------------------------------------------------------- #
 
 
-# def plot_avg_after_change(dic_of_values,
-#                           nb_steps,
-#                           nb_trials,
-#                           change_rate,
-#                           nb_iters,
-#                           title='',
-#                           xlabel="Number of steps after the task change",
-#                           ylabel='Rewards',
-#                           legend=True,
-#                           ax=None,
-#                           save=True,
-#                           multiply=False):
-#     if ax is None:
-#         fig, ax = plt.subplots()
-#     all_means = {}
-#     trials_each_change = int(change_rate//nb_steps)
-#     nb_values = nb_iters
-#     for agent in dic_of_values.keys():
-#         all_means[agent] = np.zeros((nb_iters, trials_each_change))
-#         values = np.array(dic_of_values[agent])
-#         not_used = nb_trials % trials_each_change
-#         for j in range(trials_each_change):
-#             filter_indices = np.array([i+j for i in range(0,
-#                                                           nb_trials-not_used,
-#                                                           trials_each_change)])
+def plot_maze(world,
+              path,
+              labels=np.empty(0),
+              arrows=np.empty(0),
+              uncertain=np.empty(0),
+              blue_circle=False):
 
-#             r_change = np.take(values, filter_indices, 1)
-#             if multiply:
-#                 r_change *= 1e3/nb_steps
-#             mean = np.mean(r_change, axis=1)
-#             all_means[agent][:, j] = mean
+    reward = world[world > 0][0]
 
-#         array_mean = all_means[agent]
-#         array_std = np.std(array_mean, axis=0)
-#         array_mean = np.mean(array_mean, axis=0)
+    size = np.shape(world)
+    black = [0, 0, 0]
+    blue = [0.14, 0.48, 1]
+    red = [1, 0, 0]
+    yellow = [218/255,165/255,32/255]
+    size_colors = size+tuple([3])
+    array_of_colors = np.ones(size_colors)
+    init_state = world == -2
 
-#         array_CI = 1.96*array_std / np.sqrt(nb_values)
-#         x_axis = np.arange(1, trials_each_change+1)
-#         ax.plot(x_axis,
-#                 array_mean,
-#                 label=labels[agent],
-#                 color=all_colors[colors[agent]],
-#                 marker=markers[agent],
-#                 markersize=4)
-#         ax.fill_between(x_axis,
-#                         array_mean-array_CI,
-#                         array_mean+array_CI,
-#                         color=all_colors[colors[agent]],
-#                         alpha=0.15)
+    walls = world == -1
 
-#     ax.set_ylabel(ylabel, fontweight='bold')
-#     ax.set_xlabel(xlabel, fontweight='bold')
-#     # ax.yaxis.get_major_locator().set_params(integer=True)
-#     ax.xaxis.get_major_locator().set_params(integer=True)
-#     if legend:
-#         ax.legend(loc='lower center')
-#     if title == '':
-#         title = str(time.time())
-#     if save:
-#         plt.savefig('results/'+title+'.pdf')
-#         plt.close()
+    pattern_array = np.zeros(np.shape(init_state), dtype='bool')
+    for key, value in pattern.items():
+        if value == 0:
+            pattern_array[key] = True
+
+    if len(uncertain) > 0:
+        pattern_array = arrows != uncertain
+        pattern_array[walls] = False
+
+    array_of_colors[pattern_array] = yellow
+    array_of_colors[init_state] = blue
+    array_of_colors[walls] = black
+    reward_matrix = world == reward
+    array_of_colors[reward_matrix] = red
+
+    _, ax = plt.subplots(1, 1, dpi=100)
+    # adding colors
+    ax.imshow(array_of_colors, aspect='equal')
+    if len(labels) == 0 and len(arrows) == 0:
+        for i in range(world.shape[0]):
+            for j in range(world.shape[1]):
+                if reward_matrix[j, i]:
+                    ax.text(i, j, "R", va='center', ha='center')
+                if init_state[j, i]:
+                    ax.text(i, j, "I", va='center', ha='center')
+
+    if len(arrows) != 0:
+        for i in range(arrows.shape[0]):
+            for j in range(arrows.shape[1]):
+                if walls[i, j] ==0:
+                    action = arrows[i, j]
+                    if len(uncertain) > 0 and pattern_array[i, j]:
+                        action = uncertain[i, j]
+                    if action == 4:  # Draw a circle
+                        circle = plt.Circle((j, i), 0.1,
+                                            color='black', fill=True)
+                        ax.add_patch(circle)
+                    elif action == 0:  # Up arrow (↑)
+                        ax.arrow(j, i+0.1, 0, -0.1, head_width=0.1,
+                                 head_length=0.1, fc='black', ec='black')
+                    elif action == 1:  # Down arrow (↓)
+                        ax.arrow(j, i-0.1, 0, 0.1, head_width=0.1,
+                                 head_length=0.1, fc='black', ec='black')
+                    elif action == 2:  # Left arrow (←)
+                        ax.arrow(j, i, -0.1, 0, head_width=0.1,
+                                 head_length=0.1, fc='black', ec='black')
+                    elif action == 3:  # Right arrow (→)
+                        ax.arrow(j, i, 0.1, 0, head_width=0.1,
+                                 head_length=0.1, fc='black', ec='black')
+                    
+                    if blue_circle :
+                        circle = plt.Circle((j-0.4, i-0.4), 0.05,
+                                            color='blue', fill=True)
+                        ax.add_patch(circle)
+
+    # adding labels
+    for i in range(0, labels.shape[0]):
+        for j in range(0, labels.shape[1]):
+            c = labels[j, i]
+            ax.text(i, j, str(c), va='center', ha='center')
+    major_ticks = np.arange(-0.5, size[0] + 0.5)
+    ax.set_xticks(major_ticks)
+    ax.set_yticks(major_ticks)
+    ax.grid(True, alpha=1, color='black', linewidth=1)
+    for tick in ax.xaxis.get_major_ticks():
+        tick.tick1line.set_visible(False)
+        tick.tick2line.set_visible(False)
+        tick.label1.set_visible(False)
+        tick.label2.set_visible(False)
+    for tick in ax.yaxis.get_major_ticks():
+        tick.tick1line.set_visible(False)
+        tick.tick2line.set_visible(False)
+        tick.label1.set_visible(False)
+        tick.label2.set_visible(False)
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+
+def plot_one_transition(world_number,
+                        col,
+                        row,
+                        action,
+                        cond=''):
+    str_world = str(world_number)
+    str_cell = str(col)+str(row)
+    str_action = str(action)
+    world = np.load('Env/Tables/World_'+str_world+'.npy')
+    transitions = np.load('Env/Transitions/Transitions_'+str_world+cond+'.npy')
+    transi_action = transitions[row][col][action]
+    tmp_path = '_action_'+str_action+'_cond'+cond+'.pdf'
+    path_save = 'Env/world_'+str_world+'_cell_'+str_cell+tmp_path
+
+    walls = world == -1
+    numbers = [0, 1, -1]
+    pairs = [(x, y) for x in numbers for y in numbers]
+    nine_walls = np.zeros((3, 3))
+    nine_probas = np.zeros((3, 3))
+    max_col = len(transitions)
+    max_row = len(transitions[0])
+    for (x, y) in pairs:
+        new_row = row+x
+        new_col = col+y
+        cond_x = new_row >= max_row or new_row < 0
+        cond_y = new_col >= max_col or new_col < 0
+        if cond_x or cond_y:
+            nine_walls[x+1, y+1] = 1
+        else:
+            nine_walls[x+1, y+1] = walls[new_row, new_col]
+        if nine_walls[x+1, y+1] != 1:
+            nine_probas[x+1, y+1] = transi_action[new_row, new_col]
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+
+    # Loop through all cells and fill them accordingly
+    for i in range(nine_probas.shape[0]):
+        for j in range(nine_probas.shape[1]):
+            color = 'black' if nine_walls[i, j] == 1 else 'white'
+            ax.add_patch(plt.Rectangle((j, i), 1, 1, color=color))
+            # Add text only in white cells
+            if nine_walls[i, j] == 0:
+                percent = round(nine_probas[i, j] * 100, 1)
+                if percent > 0:  # Only display if greater than 0
+                    ax.text(j + 0.5, i + 0.5, f"{percent}%",
+                            ha='center', va='center', color='black')
+
+    if action == 4:  # Draw a circle
+        circle = plt.Circle((1.5, 1.7), 0.1, color='blue', fill=True)
+        ax.add_patch(circle)
+    elif action == 0:  # Up arrow (↑)
+        ax.arrow(1.5, 1.3, 0, -0.1, head_width=0.1,
+                 head_length=0.1, fc='blue', ec='blue')
+    elif action == 1:  # Down arrow (↓)
+        ax.arrow(1.5, 1.7, 0, 0.1, head_width=0.1,
+                 head_length=0.1, fc='blue', ec='blue')
+    elif action == 2:  # Left arrow (←)
+        ax.arrow(1.6, 1.3, -0.1, 0, head_width=0.1,
+                 head_length=0.1, fc='blue', ec='blue')
+    elif action == 3:  # Right arrow (→)
+        ax.arrow(1.4, 1.3, 0.1, 0, head_width=0.1,
+                 head_length=0.1, fc='blue', ec='blue')
+
+    # Set limits and aspect
+    ax.set_xlim(0, nine_probas.shape[1])
+    ax.set_ylim(nine_probas.shape[0], 0)
+    ax.set_xticks(np.arange(nine_probas.shape[1] + 1))
+    ax.set_yticks(np.arange(nine_probas.shape[0] + 1))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.grid(True, color="black", linewidth=1.5)
+    ax.tick_params(which="both", bottom=False, left=False)
+    plt.tight_layout()
+    plt.savefig(path_save)
+    plt.close()
+
+
+def plot_number_models_cross_env(cross_env_number,
+                                 models,
+                                 title='',
+                                 title_fig=''):
+    if title == '':
+        title = str(time.time())
+    world_array = np.load('Env/Tables/World_'+str(cross_env_number)+'.npy')
+    shape_env = np.shape(world_array)
+    models = np.reshape(models, shape_env)
+    path = 'results/'+title_fig+title+'.pdf'
+    plot_maze(world_array, path, models)
