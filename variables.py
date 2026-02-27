@@ -1,6 +1,7 @@
 from agents import SoftmaxFiniteHorizon, VI_softmax
 from task_change_agents import SoftmaxMultiModel
-from envs import ChainProblem, ChangingCrossEnvironment, ThreeStates, MAB, DiffThreeStates, FourStates
+from envs import ChainProblem, ChangingCrossEnvironment, ThreeStates
+from envs import MAB, DiffThreeStates, FourStates
 from envs import PartiallyChangingMaze
 from rlcd import RLCD
 
