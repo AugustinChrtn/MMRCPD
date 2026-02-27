@@ -8,8 +8,6 @@ results/*.svg
 results/*.npy
 results/*.pdf
 results/*.txt
-play_function_old.py
-plots_old.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
