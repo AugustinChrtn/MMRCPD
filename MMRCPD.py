@@ -57,7 +57,7 @@ class MMRCPD():
         # self.tSAS = np.ones(self.shape_SAS) / self.size_environment
         self.tSAS = np.zeros(self.shape_SAS)
         for action in range(self.size_actions):
-                self.tSAS[:, action, :] = np.eye(self.size_environment)
+            self.tSAS[:, action, :] = np.eye(self.size_environment)
         # Q-Table
         self.Q = np.zeros(self.shape_SA)
 
@@ -182,13 +182,14 @@ class MMRCPD():
         self.last_rewards[old_state][action][ind_rel] = reward
         self.last_used_models[old_state][action][ind_rel] = model_number
 
-        if self.nSA[old_state][action] == 1 :
-            self.recent_tSAS[old_state, action :] = np.zeros(self.size_environment)
+        if self.nSA[old_state][action] == 1:
+            self.recent_tSAS[old_state, action:] = np.zeros(
+                self.size_environment)
             self.recent_tSAS[old_state, action, new_state] = 1
-        else :
+        else:
             self.recent_tSAS[old_state, action, :] *= (1-self.rho)
             self.recent_tSAS[old_state, action, new_state] += self.rho
-        print(self.recent_tSAS[old_state,action,:])
+        print(self.recent_tSAS[old_state, action, :])
         # Update all counts
         self.total_nSA[old_state][action] += 1
         self.all_nSAS[model_number][old_state][action][new_state] += 1
@@ -391,7 +392,7 @@ class MMRCPD():
         nSAS_SA = self.nSAS[old_state][action]
         nSA_SA = self.nSA[old_state][action]
         self.tSAS[old_state][action] = nSAS_SA / nSA_SA
-        
+
         if np.sum(nSAS_SA) != nSA_SA:
             print("nSAS", nSAS_SA)
             print("sum nSAS", np.sum(nSAS_SA))
@@ -417,7 +418,7 @@ class MMRCPD():
 
         #     if self.nSA[old_state][action] >= self.horizon:
         #             self.R_VI[old_state][action] = self.R[old_state][action]
-        #     else : 
+        #     else :
         #         self.R_VI[old_state][action] = np.max(self.R)
         self.R_VI[old_state][action] = self.R[old_state][action]
 
@@ -551,7 +552,7 @@ class MMRCPD():
             nb_experiences = np.sum(last_trans)
             last_trans = last_trans/nb_experiences
             print(self.recent_tSAS[old_state][action])
-            kl = self.kl_div(self.recent_tSAS[old_state][action], 
+            kl = self.kl_div(self.recent_tSAS[old_state][action],
                              trans_model)
             return kl
 
@@ -560,7 +561,7 @@ class MMRCPD():
         q += epsilon
         p /= np.sum(p)
         q /= np.sum(q)
-        
+
         print(p, q)
 
         kl = np.sum(p * np.log(p / q))
@@ -715,7 +716,6 @@ class MMRCPD():
         jen2 = self.kl_div(distrib2, distrib_sum)
         jen = 1/2*(jen1+jen2)
         return jen
-
 
     def try_to_merge_with_couples(self, old_state, action, couples_to_test):
         all_divergences = []
