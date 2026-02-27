@@ -1,3 +1,4 @@
+import inspect
 from consts import all_colors, colors, labels, markers
 from consts import one_step_environments, multi_model_agents
 from consts import mM_and_RLCD
@@ -6,86 +7,209 @@ import numpy as np
 import matplotlib.pyplot as plt
 from const_maze import pattern
 import matplotlib
+import os
+import json
+import pandas as pd
 matplotlib.use("Agg")
 
 # ---------------------------------------------------------------------------- #
-# 1D Plots
+# Retrieve the data
 # ---------------------------------------------------------------------------- #
 
 
-def plot_with_CI(rewards,
-                 steps_per_episode,
-                 nb_iters,
-                 save=True,
-                 color='tab:blue',
-                 label='Reward',
-                 marker='.',
-                 markersize=4):
-    mean = np.mean(rewards, axis=0)
-    std = np.std(rewards, axis=0)
-    #index_plot = np.arange(len(mean))*steps_per_episode
-    index_plot = np.arange(len(mean))
-    n_values = nb_iters
-    conf_I = 1.96*std/np.sqrt(n_values)
-    yerr0 = mean-conf_I
-    yerr1 = mean + conf_I
+def get_plot_from_saved(dir_path, suptitle="Uncertain variation", legend=False):
 
-    plt.plot(index_plot,
-             mean,
-             color=color,
-             linewidth=1.5,
-             label=label,
-             marker=marker,
-             markersize=markersize)
-    plt.fill_between(index_plot,
-                     yerr0,
-                     yerr1,
-                     color=color,
-                     alpha=0.15)
-    if save:
-        plt.savefig('plots/results'+str(time.time())+'.png')
+    # Path to files
+    results_path = f"{dir_path}/episode_results.csv.gz"
+    parameters_path = f"{dir_path}/parameters.json"
+    arrays_path = f"{dir_path}/final_arrays.npz"
+
+    # Loading the files
+    results = pd.read_csv(results_path)
+    final_arrays = np.load(arrays_path)
+
+    with open(parameters_path, 'r') as f:
+        # Parsing the json file into a Python dictionary
+        parameters = json.load(f)
+
+    get_all_plot(results, parameters, final_arrays, dir_path,
+                 suptitle=suptitle, legend=legend)
 
 
-def plot_change(change_rate,
+# ---------------------------------------------------------------------------- #
+# Useful functions - Data structure
+# ---------------------------------------------------------------------------- #
+
+# To use a dictionary which includes parameters func does not need
+def call_with_valid_args(func, **kwargs):
+    valid = inspect.signature(func).parameters
+    filtered = {k: v for k, v in kwargs.items() if k in valid}
+    return func(**filtered)
+
+
+def get_agent_array(df, agent, metric):
+
+    arr = df[df.agent == agent].pivot(
+        index="trial_id", columns="episode", values=metric).to_numpy()
+
+    return arr
+
+# def build_raw_dict(df, metric):
+#     out = {}
+
+#     for agent, sub in df.groupby("agent"):
+#         out[agent] = (
+#             sub
+#             .pivot(index="seed", columns="trial", values=metric)
+#             .sort_index()
+#             .to_numpy()
+#         )
+
+#     return out
+
+
+# ---------------------------------------------------------------------------- #
+# Useful functions - Plotting
+# ---------------------------------------------------------------------------- #
+
+
+def plot_change(total_steps,
+                change_rate,
                 steps):
-    nb_changes = int(steps//change_rate)
+
+    nb_changes = int(total_steps // change_rate)
     for i in range(1, nb_changes):
-        plt.axvline(x=change_rate*i,
+        plt.axvline(x=change_rate//steps*i,
                     linestyle='--',
                     color='black',
                     alpha=0.1)
 
 
-def plot_legend(results):
-    names = list(results.keys())
+# ---------------------------------------------------------------------------- #
+# Main plotting function
+# ---------------------------------------------------------------------------- #
 
-    fig = plt.figure(figsize=(2, 1.25))
-    patches = []
-    agent_names = []
-    for name in names:
-        color = all_colors[colors[name]]
-        label = labels[name]
-        agent_names.append(label)
-        patches.append(matplotlib.patches.Patch(color=color, label=label))
-    fig.legend(patches, labels, loc='center', frameon=False)
-    plt.savefig('results/Legend'+str(time.time())+'.pdf', bbox_inches='tight')
-    plt.close()
+
+def get_all_plot(results,
+                 parameters,
+                 arrays,
+                 dir_path,
+                 legend,
+                 suptitle='Uncertain variation'):
+
+    # # Creating a plots directory if it does not exist
+    # save_path = os.path.join(dir_path, "plots")
+    # os.makedirs(d, exist_ok=True)
+    save_path = dir_path
+    # General parameters used in all plots
+    params_plot = {'change_rate': parameters['env_param'][0]['step_change'],
+                   'steps': parameters['max_step'],
+                   'trials': parameters['trials'],
+                   'save_path': save_path,
+                   'legend': legend,
+                   'suptitle': suptitle,
+                   'nb_iters': parameters['nb_iters']}
+
+    # If there is no change, use an arbitrary high number for the change rate
+    if params_plot['change_rate'] is None:
+        params_plot['change_rate'] = params_plot['steps'] * \
+            params_plot['trials']
+
+    # Gives what to plot and the associated ylabel
+    metric_specs = [
+        ("reward", "Rewards"),
+        ("best_action", "Probability of selecting the best action"),
+        ("time (ms)", "Time per decision (ms)"),
+        ("distance", "Euclidean distance")
+    ]
+
+    # if the env is one step, x-axis is step and we plot best_action instead
+    # of reward
+    env_is_one_step = results['environment'][0] in one_step_environments
+    if env_is_one_step:
+        event = 'steps'
+        metric_specs.pop(0)
+    else:
+        event = 'trials'
+        metric_specs.pop(1)
+
+    # Uses metric_specs to specify the plotting parameters
+    metrics_to_plot = {
+        name: {
+            **params_plot,
+            "ylabel": label,
+            "xlabel": f"Number of {event}",
+            "save_name": name
+        }
+        for name, label in metric_specs
+    }
+
+    # Plots
+
+    # The call with valid args makes sure that the function only uses the
+    # necessary parameters
+    call_with_valid_args(plot_four_models,
+                         results=results,
+                         xlabel=f"Number of task changes",
+                         **params_plot)
+
+    perf_metric = metric_specs[0][0]
+    metric_2 = "time (ms)"
+    call_with_valid_args(plot_four,
+                         results=results,
+                         metric_1=perf_metric,
+                         metric_2=metric_2,
+                         ylabel_metric_1=metrics_to_plot[perf_metric]["ylabel"],
+                         ylabel_metric_2=metrics_to_plot[metric_2]["ylabel"],
+                         xlabel=f"Number of {event} after the task change",
+                         **params_plot)
+
+    # .txt file with mean perf
+    general_performance(results, perf_metric, save_path)
+    # boxplot with total times per seed
+    plot_boxplot_time(results=results, 
+                      save_path=save_path,
+                      metric_name=metric_2)
+
+    for metric_name, metric_params in metrics_to_plot.items():
+        call_with_valid_args(plot_curves,
+                             results=results,
+                             metric_name=metric_name,
+                             **metric_params)
+
+        # call_with_valid_args(plot_metric_from_df,
+        #                      results=results,
+        #                      metric_name=metric_name,
+        #                      mode='after_change',
+        #                      **metric_params
+        #                      )
+
+        call_with_valid_args(plot_two,
+                             results=results,
+                             metric_name=metric_name,
+                             **metric_params
+                             )
+    
+
+# ---------------------------------------------------------------------------- #
+# Plot curves, for legend and uncertain variations
+# ---------------------------------------------------------------------------- #
 
 def plot_curves(results,
+                metric_name,
                 change_rate,
                 steps,
-                nb_iters,
                 ylabel='Reward',
                 xlabel='Steps',
-                title='',
-                legend=True,
-                multiply=False,
-                suptitle='Uncertain variation'):
+                #legend=True,
+                suptitle='Uncertain variation',
+                save_name='',
+                save_path=''):
     """Two-subplot version:
        - left: only the legend (bold)
-       - right: the curves and change lines, titled 'rewards' (bold), no legend
+       - right: the curves and change lines, no legend
     """
-    fig= plt.figure(figsize=(14, 5))
+    fig = plt.figure(figsize=(14, 5))
     gs = fig.add_gridspec(1, 2, width_ratios=[1, 1])
     ax_left = fig.add_subplot(gs[0, 0])
     ax_right = fig.add_subplot(gs[0, 1])
@@ -93,57 +217,57 @@ def plot_curves(results,
     ax_left.plot([0, 1], [0, 1], alpha=0)     # invisible dummy plot
     ax_left.set_xlim(0, 1)
     ax_left.set_ylim(0, 1)
-    # ax_left.set_xticks([])
-    # ax_left.set_yticks([])
 
     ax_left.tick_params(axis='x', colors='white')   # x-tick labels invisible
     ax_left.tick_params(axis='y', colors='white')   # y-tick labels invisible
-    ax_left.spines['bottom'].set_color('white')   
-    ax_left.spines['left'].set_color('white')       
+    ax_left.spines['bottom'].set_color('white')
+    ax_left.spines['left'].set_color('white')
     ax_left.spines['right'].set_color('white')
     ax_left.spines['top'].set_color('white')
 
-    names = list(results.keys())
-    counter = 0
+    # Getting the stats for the metric
+    stats = results.groupby(['agent', 'episode'], sort=False)[metric_name].agg(
+        ['mean', 'std', 'count']).reset_index()
 
-    # Plot everything on the right subplot
-    for name in names:
-        res_to_plot = np.array(results[name])
-        if multiply:
-            res_to_plot *= 1e3 / steps
+    agents = results['agent'].unique()
 
-        counter += 1
-        if counter == 1:
-            total_steps = len(res_to_plot[0])
-            # ensure the change plot goes to the right axis
-            plt.sca(ax_right)
-            plot_change(change_rate, total_steps)
+    for agent in agents:
 
-        # plot_with_CI likely uses the current axes (plt); force it to the right axes
-        plt.sca(ax_right)
-        plot_with_CI(res_to_plot,
-                     steps,
-                     nb_iters,
-                     save=False,
-                     color=all_colors[colors[name]],
-                     label=labels[name],
-                     marker=markers[name],
-                     markersize=4)
+        agent_stats = stats[stats['agent'] == agent]
+        y = agent_stats['mean']
+        std = agent_stats['std']
+        n = agent_stats['count']
+        x = np.arange(len(y))
+
+        ci = 1.96 * std / np.sqrt(n)
+
+        ax_right.plot(x,
+                      y,
+                      label=labels[agent],
+                      color=all_colors[colors[agent]],
+                      marker=markers[agent],
+                      markersize=4)
+        ax_right.fill_between(x, y-ci, y+ci, alpha=0.2, 
+                              color=all_colors[colors[agent]])
+
+    # Plot change lines
+    total_steps = steps*len(x)
+    plot_change(total_steps, change_rate, steps)
 
     # Configure right subplot (the actual plot)
     ax_right.set_xlabel(xlabel, fontweight='bold')
     ax_right.set_ylabel(ylabel, fontweight='bold')
 
-    # Collect handles/labels from the right axis (these come from plot_with_CI)
+    # Collect handles/labels from the right axis
     handles, labs = ax_right.get_legend_handles_labels()
 
-    # Remove any legend from the right subplot (we'll put it on the left)
+    # Remove any legend from the right subplot (it is on the left)
     right_leg = ax_right.get_legend()
     if right_leg is not None:
         right_leg.remove()
 
     # Left subplot: only show the legend (centered)
-    if legend and len(handles) > 0:
+    if len(handles) > 0:
         # Put legend into the left axis centered. Make labels bold via prop.
         legend_props = {'weight': 'bold', 'size': 20}
         ax_left.legend(handles, labs, loc='center', prop=legend_props)
@@ -152,166 +276,263 @@ def plot_curves(results,
         ax_left.set_visible(False)
 
     # Turn off axes ticks/lines for left subplot so only the legend shows
-    # ax_left.axis('off')
-    ax_left.set_frame_on(True)         # keeps a frame box (invisible)
-    ax_left.patch.set_alpha(0)
+    ax_left.set_frame_on(True)         # keeps a frame box
+    ax_left.patch.set_alpha(0)         # (invisible)
 
     ax_left.set_xlabel(" x-axis ", alpha=0, fontweight='bold')
     ax_left.set_ylabel(" y-axis ", alpha=0, fontweight='bold')
-    #ax_left.set_title(" Legend ", pad=25, size=14, fontweight='bold',alpha=0)
 
     # Right subplot title in bold
-    ax_left.set_title(suptitle, fontweight='bold', size=22, pad=25, color='black')
-    # Save and close
-    if title == '':
-        title = str(time.time())
-    #fig.suptitle(suptitle, fontweight='bold', size=14, x=0.75)
-    #plt.tight_layout()
-    
-    plt.savefig('results/' + ylabel + title + '.pdf', bbox_inches='tight')
-    plt.close()
+    ax_left.set_title(suptitle, fontweight='bold',
+                      size=22, pad=25, color='black')
 
-
-
-def plot_time(times,
-              title_fig='Average time in seconds for each agent',
-              title=''):
-    value_label, data = [*zip(*times.items())]
-    plt.boxplot(data)
-    names = []
-    for key in value_label:
-        name = labels[key]
-        names.append(name)
-    plt.xticks(range(1, len(names) + 1), names, fontsize=16-2*len(names))
-    plt.ylabel('Time (s)')
-    plt.title(title_fig)
-    if title == '':
-        title = str(time.time())
-    plt.savefig('results/total_times'+title+'.pdf')
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, f'{save_name}.pdf'), bbox_inches='tight')
     plt.close()
 
 
 # ---------------------------------------------------------------------------- #
-# Plots average after change
+# Plot average after change or over time
 # ---------------------------------------------------------------------------- #
 
-def plot_two(dic_of_rewards,
-             nb_steps,
-             nb_trials,
+def aggregate_metric(values,
+                     nb_trials,
+                     nb_steps,
+                     change_rate,
+                     mode):
+
+    trials_each_change = change_rate // nb_steps
+
+    if mode == "after_change":
+
+        not_used = nb_trials % trials_each_change
+        out = np.zeros((len(values), trials_each_change))
+
+        for j in range(trials_each_change):
+            idx = np.arange(j, nb_trials-not_used, trials_each_change)
+            r = values[:, idx]
+            out[:, j] = r.mean(axis=1)
+
+        x = np.arange(1, trials_each_change+1)
+
+    elif mode == "over_time":
+
+        nb_changes = nb_trials // trials_each_change
+        out = np.zeros((len(values), nb_changes))
+
+        for i in range(nb_changes):
+            start = i*trials_each_change
+            r = values[:, start:start+trials_each_change]
+            out[:, i] = r.mean(axis=1)
+
+        x = np.arange(nb_changes)
+
+    else:
+        raise ValueError("mode must be 'after_change' or 'over_time'")
+
+    return out, x
+
+
+def plot_metric_from_df(results,
+                        metric_name,
+                        mode,
+                        trials,
+                        steps,
+                        change_rate,
+                        nb_iters,
+                        ax=None,
+                        legend=True,
+                        xlabel=None,
+                        ylabel=None,
+                        save=True,
+                        save_path='',
+                        save_name='',
+                        grid=False):
+
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    agents = results['agent'].unique()
+
+    for agent in agents:
+
+        values = get_agent_array(results, agent, metric_name)
+        agg, x = aggregate_metric(
+            values,
+            trials,
+            steps,
+            change_rate,
+            mode
+        )
+
+        mean = agg.mean(axis=0)
+        std = agg.std(axis=0)
+        ci = 1.96 * std / np.sqrt(len(values))
+
+        if not np.isnan(mean).any():
+            ax.plot(x,
+                    mean,
+                    label=labels[agent],
+                    color=all_colors[colors[agent]],
+                    marker=markers[agent],
+                    markersize=4)
+
+            ax.fill_between(x,
+                            mean-ci,
+                            mean+ci,
+                            color=all_colors[colors[agent]],
+                            alpha=0.15)
+
+    ax.xaxis.get_major_locator().set_params(integer=True)
+    if grid:
+        ax.grid(alpha=0.2)
+    if xlabel:
+        ax.set_xlabel(xlabel, fontweight="bold")
+    if ylabel:
+        ax.set_ylabel(ylabel, fontweight="bold")
+    if legend:
+        ax.legend()
+    if save:
+        plt.savefig(os.path.join(save_path, f'{save_name}_{mode}.pdf'))
+        plt.close()
+
+# ---------------------------------------------------------------------------- #
+# Sum-up plots
+# ---------------------------------------------------------------------------- #
+
+
+def plot_two(results,
+             metric_name,
+             steps,
+             trials,
              change_rate,
              nb_iters,
-             title,
              xlabel,
              ylabel,
+             save_path,
              legend=False,
-             multiply=False,
              suptitle='Uncertain-Volatile variation'):
 
     fig, axs = plt.subplots(1, 2, figsize=(14, 5))
-    plot_avg_after_change(dic_of_rewards,
-                          nb_steps,
-                          nb_trials,
-                          change_rate,
-                          nb_iters,
-                          title=title,
-                          legend=False,
-                          xlabel=xlabel,
-                          ylabel=ylabel,
-                          ax=axs[1],
-                          save=False,
-                          multiply=multiply)
 
-    plot_avg_over_time(dic_of_rewards,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title=title,
-                       ylabel=ylabel,
-                       legend=False,
-                       ax=axs[0],
-                       save=False,
-                       multiply=multiply)
+    plot_metric_from_df(results,
+                        metric_name,
+                        "over_time",
+                        trials,
+                        steps,
+                        change_rate,
+                        nb_iters,
+                        ax=axs[0],
+                        legend=False,
+                        xlabel="Number of task changes",
+                        ylabel=ylabel,
+                        save=False)
 
-    if legend : 
+    plot_metric_from_df(results,
+                        metric_name,
+                        "after_change",
+                        trials,
+                        steps,
+                        change_rate,
+                        nb_iters,
+                        ax=axs[1],
+                        legend=False,
+                        xlabel=f'{xlabel} after the task change',
+                        ylabel=ylabel,
+                        save=False)
+
+    if legend:
         handles, labels = axs[0].get_legend_handles_labels()
         fig_legend = plt.figure(figsize=(8, 2))
         fig_legend.legend(handles, labels, loc='center', ncol=2,
-                        prop={"weight": "bold", "size": 14})
+                          prop={"weight": "bold", "size": 14})
         fig_legend.tight_layout()
-        fig_legend.savefig(
-            "results/legend_"+title+".pdf", bbox_inches='tight')
+        fig_legend.savefig(os.path.join(save_path, 'Legend.pdf'),
+                           bbox_inches='tight')
         plt.close(fig_legend)
 
     axs[0].set_title(suptitle, fontweight='bold', size=22, pad=25)
-    plt.savefig('results/'+title+'.pdf', bbox_inches='tight')
+    plt.savefig(os.path.join(save_path,
+                             f'{metric_name}_over_time_and_after_change.pdf'),
+                             bbox_inches='tight')
     plt.close()
 
 
-def plot_four_models(models,
-                     models_created,
-                     models_merged,
-                     models_forgotten,
-                     nb_steps,
-                     nb_trials,
+def plot_four_models(results,
+                     steps,
+                     trials,
                      change_rate,
                      nb_iters,
-                     title,
-                     legend=True):
+                     xlabel,
+                     save_path,
+                     legend=False):
 
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 
-    plot_avg_over_time(models,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title=title,
-                       legend=False,
-                       ax=axs[0, 0],
-                       save=False,
-                       ylabel='Total number of models',
-                       grid=True
-                       )
+    plot_metric_from_df(results,
+                        metric_name='nb_model',
+                        mode="over_time",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[0, 0],
+                        legend=False,
+                        xlabel=xlabel,
+                        save=False,
+                        grid=True)
 
-    plot_avg_over_time(models_created,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title=title,
-                       ylabel='Number of models created',
-                       legend=False,
-                       ax=axs[0, 1],
-                       save=False, grid=True)
+    plot_metric_from_df(results,
+                        metric_name='nb_creation',
+                        mode="over_time",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[0, 1],
+                        legend=False,
+                        xlabel=xlabel,
+                        ylabel='Number of models created',
+                        save=False,
+                        grid=True)
 
-    plot_avg_over_time(models_merged,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title=title,
-                       ylabel='Number of models merged',
-                       legend=False,
-                       ax=axs[1, 0],
-                       save=False, grid=True)
+    plot_metric_from_df(results,
+                        metric_name='nb_merging',
+                        mode="over_time",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[1, 0],
+                        legend=False,
+                        xlabel=xlabel,
+                        ylabel='Number of models merged',
+                        save=False,
+                        grid=True)
 
-    plot_avg_over_time(models_forgotten,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title=title,
-                       ylabel='Number of models forgotten',
-                       legend=False,
-                       ax=axs[1, 1],
-                       save=False, grid=True)
+    plot_metric_from_df(results,
+                        metric_name='nb_merging',
+                        mode="over_time",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[1, 1],
+                        legend=False,
+                        xlabel=xlabel,
+                        ylabel='Number of models forgotten',
+                        save=False,
+                        grid=True)
 
     handles, labels = axs[0, 0].get_legend_handles_labels()
     # Create a single legend below all subplots
     odd = len(labels) % 2
-    if legend :
-        fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
+    if legend:
+        fig.legend(handles,
+                   labels,
+                   loc="lower center",
+                   ncol=2+odd,
+                   fontsize=12)
 
     # Adjust layout to make space for the legend
 
@@ -321,74 +542,86 @@ def plot_four_models(models,
                         top=0.9, bottom=bottom_adjust,
                         wspace=0.3, hspace=0.3)
     # fig.tight_layout(pad=5.0)
-    plt.savefig('results/sum_up_models'+title+str(legend)+'.pdf', bbox_inches='tight')
+    plt.savefig(os.path.join(save_path, 'multi-model-metrics.pdf'),
+                bbox_inches='tight')
     plt.close()
 
 
-def plot_four(dic_of_rewards,
-              dic_of_times,
-              nb_steps,
-              nb_trials,
+def plot_four(results,
+              metric_1,
+              metric_2,
+              steps,
+              trials,
               change_rate,
               nb_iters,
-              title,
               xlabel,
-              ylabel_res):
+              ylabel_metric_1,
+              ylabel_metric_2,
+              save_path,
+              legend=True):
 
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
-    plot_avg_after_change(dic_of_rewards,
-                          nb_steps,
-                          nb_trials,
-                          change_rate,
-                          nb_iters,
-                          title=title,
-                          legend=False,
-                          xlabel=xlabel,
-                          ylabel=ylabel_res,
-                          ax=axs[0, 1],
-                          save=False)
+    plot_metric_from_df(results,
+                        metric_name=metric_1,
+                        mode="over_time",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[0, 0],
+                        legend=False,
+                        xlabel="Number of task changes",
+                        ylabel=ylabel_metric_1,
+                        save=False)
 
-    plot_avg_over_time(dic_of_rewards,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title='Reward_over_time'+title,
-                       legend=False,
-                       ax=axs[0, 0],
-                       ylabel=ylabel_res,
-                       save=False)
+    plot_metric_from_df(results,
+                        metric_name=metric_1,
+                        mode="after_change",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[0, 1],
+                        legend=False,
+                        xlabel=xlabel,
+                        ylabel=ylabel_metric_1,
+                        save=False)
 
-    plot_avg_over_time(dic_of_times,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title="Computational_time_over_time"+title,
-                       ylabel='Time per decision (ms)',
-                       legend=False,
-                       ax=axs[1, 0],
-                       save=False,
-                       multiply=True)
+    plot_metric_from_df(results,
+                        metric_name=metric_2,
+                        mode="over_time",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[1, 0],
+                        legend=False,
+                        xlabel='Number of task changes',
+                        ylabel=ylabel_metric_2,
+                        save=False)
 
-    plot_avg_after_change(dic_of_times,
-                          nb_steps,
-                          nb_trials,
-                          change_rate,
-                          nb_iters,
-                          title=title,
-                          xlabel=xlabel,
-                          ylabel='Time per decision (ms)',
-                          legend=False,
-                          ax=axs[1, 1],
-                          save=False,
-                          multiply=True)
+    plot_metric_from_df(results,
+                        metric_name=metric_2,
+                        mode="after_change",
+                        trials=trials,
+                        steps=steps,
+                        change_rate=change_rate,
+                        nb_iters=nb_iters,
+                        ax=axs[1, 1],
+                        legend=False,
+                        xlabel=xlabel,
+                        ylabel=ylabel_metric_2,
+                        save=False)
 
     handles, labels = axs[0, 0].get_legend_handles_labels()
     # Create a single legend below all subplots
     odd = len(labels) % 2
-    fig.legend(handles, labels, loc="lower center", ncol=2+odd, fontsize=12)
-
+    if legend:
+        fig.legend(handles,
+                   labels,
+                   loc="lower center",
+                   ncol=2+odd,
+                   fontsize=12)
 
     # Adjust layout to make space for the legend
 
@@ -398,594 +631,171 @@ def plot_four(dic_of_rewards,
                         top=0.9, bottom=bottom_adjust,
                         wspace=0.3, hspace=0.3)
     # fig.tight_layout(pad=5.0)
-    plt.savefig('results/perf_sum_up'+title+'.pdf', bbox_inches='tight')
+    plt.savefig(os.path.join(save_path, f'Metrics_{metric_1}_{metric_2}.pdf'),
+                bbox_inches='tight')
     plt.close()
 
-
-def plot_avg_after_change(dic_of_values,
-                          nb_steps,
-                          nb_trials,
-                          change_rate,
-                          nb_iters,
-                          title='',
-                          xlabel="Number of steps after the task change",
-                          ylabel='Rewards',
-                          legend=True,
-                          ax=None,
-                          save=True,
-                          multiply=False):
-    if ax is None:
-        fig, ax = plt.subplots()
-    all_means = {}
-    trials_each_change = int(change_rate//nb_steps)
-    nb_values = nb_iters
-    for agent in dic_of_values.keys():
-        all_means[agent] = np.zeros((nb_iters, trials_each_change))
-        values = np.array(dic_of_values[agent])
-        not_used = nb_trials % trials_each_change
-        for j in range(trials_each_change):
-            filter_indices = np.array([i+j for i in range(0,
-                                                          nb_trials-not_used,
-                                                          trials_each_change)])
-
-            r_change = np.take(values, filter_indices, 1)
-            if multiply:
-                r_change *= 1e3/nb_steps
-            mean = np.mean(r_change, axis=1)
-            all_means[agent][:, j] = mean
-
-        array_mean = all_means[agent]
-        array_std = np.std(array_mean, axis=0)
-        array_mean = np.mean(array_mean, axis=0)
-
-        array_CI = 1.96*array_std / np.sqrt(nb_values)
-        x_axis = np.arange(1, trials_each_change+1)
-        ax.plot(x_axis,
-                array_mean,
-                label=labels[agent],
-                color=all_colors[colors[agent]],
-                marker=markers[agent],
-                markersize=4)
-        ax.fill_between(x_axis,
-                        array_mean-array_CI,
-                        array_mean+array_CI,
-                        color=all_colors[colors[agent]],
-                        alpha=0.15)
-
-    ax.set_ylabel(ylabel, fontweight='bold')
-    ax.set_xlabel(xlabel, fontweight='bold')
-    # ax.yaxis.get_major_locator().set_params(integer=True)
-    ax.xaxis.get_major_locator().set_params(integer=True)
-    if legend:
-        ax.legend(loc='lower center')
-    if title == '':
-        title = str(time.time())
-    if save:
-        plt.savefig('results/'+title+'.pdf')
-        plt.close()
+# ---------------------------------------------------------------------------- #
+# Plot general metrics (average reward, average times)
+# ---------------------------------------------------------------------------- #
 
 
-def plot_avg_over_time(dic_of_values,
-                       nb_steps,
-                       nb_trials,
-                       change_rate,
-                       nb_iters,
-                       title='',
-                       xlabel='Number of task changes',
-                       ylabel='Rewards',
-                       legend=True,
-                       ax=None,
-                       save=True,
-                       multiply=False,
-                       grid=False):
-    if ax is None:
-        fig, ax = plt.subplots()
-    all_means = {}
-    if change_rate % nb_steps != 0:
-        print("Cannot plot, change_rate % nb_steps != 0.""")
-        return None
-    trials_each_change = int(change_rate//nb_steps)
-    nb_values = nb_iters*trials_each_change
-    nb_changes = nb_trials//trials_each_change
-    nb_values = nb_iters
-    for agent in dic_of_values.keys():
-        all_means[agent] = np.zeros((nb_iters, nb_changes))
-        values = np.array(dic_of_values[agent])
-        for i in range(nb_changes):
-            starting_i = i*trials_each_change
-            r_change = values[:, starting_i:starting_i+trials_each_change]
-            if multiply:
-                r_change *= 1e3/nb_steps
-            mean = np.mean(r_change, axis=1)
-            all_means[agent][:, i] = mean
-
-        array_mean = all_means[agent]
-        array_std = np.std(array_mean, axis=0)
-        array_mean = np.mean(array_mean, axis=0)
-        array_CI = 1.96*array_std / np.sqrt(nb_values)
-        x_axis = np.arange(0, nb_changes)
-        ax.plot(x_axis,
-                array_mean,
-                label=labels[agent],
-                color=all_colors[colors[agent]],
-                marker=markers[agent],
-                markersize=4)
-        ax.fill_between(x_axis,
-                        array_mean-array_CI,
-                        array_mean+array_CI,
-                        color=all_colors[colors[agent]],
-                        alpha=0.15)
-
-    ax.set_ylabel(ylabel, fontweight='bold')
-    ax.set_xlabel(xlabel, fontweight='bold')
-    # ax.yaxis.get_major_locator().set_params(integer=True)
-    ax.xaxis.get_major_locator().set_params(integer=True)
-    if legend:
-        ax.legend(loc='lower center')
-    if title == '':
-        title = str(time.time())
-    if grid:
-        ax.grid(alpha=0.2)
-    if save:
-        plt.savefig('results/'+title+'.pdf')
-        plt.close()
-
-
-def general_performance(all_rewards, title):
-    path = 'results/general_info '+title+'.txt'
+def general_performance(results, metric_name, save_path):
+    path = os.path.join(save_path, 'average_performance.txt')
     f = open(path, "w")
-    for agent in all_rewards.keys():
-        avg = np.mean(all_rewards[agent])
-        std = np.std(np.mean(all_rewards[agent], axis=1))
+    agents = results["agent"].unique()
+    for agent in agents:
+        values = get_agent_array(results, agent, metric_name)
+        avg = np.mean(values)
+        std = np.std(np.mean(values, axis=1))
         f.write(agent + ', mean: ' + str(avg) + "; std: "+str(std))
         f.write("\n")
     f.close()
 
 
-def get_all_plot(results, parameters, legend=True, suptitle='Uncertain variation'):
-    # Get all the information
-    agents_tested = parameters['agents']
-    env_tested = parameters['env_name']
-    nb_iters = parameters['nb_iters']*len(parameters['env_param'])
-    trials = parameters['trials']
-    steps = parameters['max_step']
-    title = parameters['time']
-    change_rate = parameters['env_param'][0]['step_change']
-    if change_rate is None:
-        change_rate = steps*trials
 
-    env_is_one_step = env_tested in one_step_environments
-
-    all_rewards = {}
-    all_times = {}
-    all_total_times = {}
-    all_models = {}
-    models_created_per_cell = {}
-    models_per_cell = {}
-    all_current_distance = {}
-    all_best_actions = {}
-
-    all_changes = {}
-
-    all_current_models = {}
-    all_models_created = {}
-    all_models_merged = {}
-    all_models_forgotten = {}
-
-    for agent in agents_tested:
-        if agent in multi_model_agents:
-            all_models[agent] = {'nb_model': [],
-                                 'nb_creation': [],
-                                 'nb_forgetting': [],
-                                 'nb_merging': []}
-            if env_tested:
-                models_created_per_cell[agent] = []
-                models_per_cell[agent] = []
-        if agent in mM_and_RLCD:
-            all_changes[agent] = []
-
-    for agent in agents_tested:
-        all_rewards[agent] = []
-        all_times[agent] = []
-        all_total_times[agent] = []
-
-        # all_distance[agent] = []
-        all_current_distance[agent] = []
-
-        if agent in multi_model_agents:
-            all_current_models[agent] = []
-            all_models_created[agent] = []
-            all_models_forgotten[agent] = []
-            all_models_merged[agent] = []
-
-        if env_is_one_step:
-            all_best_actions[agent] = []
-
-    for info_exp, all_values in results.items():
-        agent_name = info_exp[1]
-        all_rewards[agent_name].append(all_values["reward"])
-        all_times[agent_name].append(all_values["times"])
-        all_total_times[agent_name].append(all_values["total_time"])
-
-        # all_distance[agent_name].append(all_values["distance_model"])
-        all_current_distance[agent_name].append(
-            all_values["distance_current_model"])
-
-        if agent_name in multi_model_agents:
-            all_current_models[agent_name].append(all_values['nb_model'])
-            all_models_created[agent_name].append(all_values['nb_creation'])
-            all_models_forgotten[agent_name].append(
-                all_values['nb_forgetting'])
-            all_models_merged[agent_name].append(all_values['nb_merging'])
-
-            for key_model in all_models[agent_name].keys():
-                all_models[agent_name][key_model].append(all_values[key_model])
-
-            if env_tested in ["ChangingCrossEnvironment",
-                              "PartiallyChangingCrossEnvironment"]:
-                models_created_per_cell[agent_name].append(
-                    all_values['creation_per_state'])
-                models_per_cell[agent_name].append(
-                    all_values['model_per_state'])
-            
-        if agent_name in mM_and_RLCD:
-            all_changes[agent_name].append(all_values['all_changes'])
-
-        if env_is_one_step:
-            all_best_actions[agent_name].append(all_values["best_action"])
-
-    # plot_curves(all_rewards,
-    #             change_rate=change_rate,
-    #             nb_iters=nb_iters,
-    #             steps=steps,
-    #             title=title)
-
-    # plot_legend(all_rewards)
-
-    if env_is_one_step:
-        event = 'steps'
-        actions_or_rewards = all_best_actions
-        spec_ylabel = 'Probability of selecting the best action'
-    else:
-        event = 'trials'
-        actions_or_rewards = all_rewards
-        spec_ylabel = 'Rewards'
-
-    for no_legend in [True]:
-        plot_curves(actions_or_rewards,
-                    change_rate=change_rate,
-                    nb_iters=nb_iters,
-                    steps=steps,
-                    title="Rewards"+title+str(no_legend),
-                    legend=no_legend,
-                    ylabel=spec_ylabel,
-                    xlabel = 'Number of '+event,
-                    suptitle=suptitle)
-
-        plot_curves(all_times,
-                    change_rate=change_rate,
-                    nb_iters=nb_iters,
-                    steps=steps,
-                    title="Times"+title+str(no_legend),
-                    legend=no_legend,
-                    ylabel="Time per decision (ms)",
-                    xlabel = 'Number of '+event,
-                    multiply=True,
-                    suptitle=suptitle)
-
-    plot_time(all_total_times, title=title)
-
-
-    for agent in agents_tested:
-        if agent in multi_model_agents:
-            # print(all_models[agent].keys())
-            plot_curves(all_models[agent],
-                        nb_iters=nb_iters,
-                        change_rate=change_rate,
-                        steps=steps,
-                        ylabel='Number of models',
-                        title=agent+title,
-                        legend=legend,
-                        suptitle=suptitle)
-            # plot_curves(all_changes[agent],
-            #             nb_iters=nb_iters,
-            #             change_rate=change_rate,
-            #             steps=steps,
-            #             ylabel='Time of detected change',
-            #             title=agent+title,
-            #             legend=legend,
-            #             suptitle=suptitle)
-            one_env = len(parameters['env_param']) == 1
-            if env_tested in ["ChangingCrossEnvironment",
-                              "PartiallyChangingCrossEnvironment"] and one_env:
-                number_env = parameters['env_param'][0]['number']
-                mean_creation = np.mean(models_created_per_cell[agent], axis=0)
-                mean_mod = np.mean(models_per_cell[agent], axis=0)
-                round_creation = np.round(mean_creation, 1)
-                round_mod = np.round(mean_mod, 1)
-                plot_number_models_cross_env(number_env,
-                                             round_creation,
-                                             title=agent+title,
-                                             title_fig='models_created')
-                plot_number_models_cross_env(number_env,
-                                             round_mod,
-                                             title=agent+title,
-                                             title_fig='models')
-    if len(all_current_models.keys()) > 0:
-        plot_avg_over_time(all_current_models,
-                           steps,
-                           trials,
-                           change_rate,
-                           nb_iters,
-                           ylabel='Number of models',
-                           title="Number of models"+title,
-                           legend=legend)
-
-    xlabel = 'Number of ' + event + ' after the task change'
-
-    general_performance(all_rewards, title)
-
-    plot_four(actions_or_rewards,
-                all_times,
-                steps,
-                trials,
-                change_rate,
-                nb_iters,
-                title,
-                xlabel=xlabel,
-                ylabel_res=spec_ylabel)
-
-    if len(all_current_models.keys()) > 0:
-        for legend_or_not in [True, False]:
-            plot_four_models(all_current_models,
-                            all_models_created,
-                            all_models_merged,
-                            all_models_forgotten,
-                            steps,
-                            trials,
-                            change_rate,
-                            nb_iters,
-                            title,
-                            legend=legend_or_not)
-        
-    plot_two(actions_or_rewards,
-                steps,
-                trials,
-                change_rate,
-                nb_iters,
-                title='reward_sum_up'+title+str(no_legend),
-                xlabel=xlabel,
-                ylabel=spec_ylabel,
-                legend=True,
-                suptitle=suptitle)
-
-    plot_two(all_current_distance,
-                steps,
-                trials,
-                change_rate,
-                nb_iters,
-                ylabel='Euclidean distance',
-                title='distance_sum_up'+title+str(no_legend),
-                xlabel=xlabel,
-                legend=False,
-                suptitle=suptitle)
-
-    plot_two(all_times,
-                steps,
-                trials,
-                change_rate,
-                nb_iters,
-                ylabel='Time per decision (ms)',
-                title='time_sum_up'+title+str(no_legend),
-                xlabel=xlabel,
-                legend=False,
-                multiply=True,
-                suptitle=suptitle)
-        
-    if agent in mM_and_RLCD :
-        
-        plot_two(all_changes,
-                steps,
-                trials,
-                change_rate,
-                nb_iters,
-                ylabel='Number of changes',
-                title='changes'+title+str(no_legend),
-                xlabel=xlabel,
-                legend=no_legend,
-                multiply=False,
-                suptitle=suptitle)
-
-
-# ---------------------------------------------------------------------------- #
-# Maze Plots
-# ---------------------------------------------------------------------------- #
-
-
-def plot_maze(world,
-              path,
-              labels=np.empty(0),
-              arrows=np.empty(0),
-              uncertain=np.empty(0),
-              blue_circle=False):
-
-    reward = world[world > 0][0]
-
-    size = np.shape(world)
-    black = [0, 0, 0]
-    blue = [0.14, 0.48, 1]
-    red = [1, 0, 0]
-    yellow = [218/255,165/255,32/255]
-    size_colors = size+tuple([3])
-    array_of_colors = np.ones(size_colors)
-    init_state = world == -2
-
-    walls = world == -1
-
-    pattern_array = np.zeros(np.shape(init_state), dtype='bool')
-    for key, value in pattern.items():
-        if value == 0:
-            pattern_array[key] = True
-
-    if len(uncertain) > 0:
-        pattern_array = arrows != uncertain
-        pattern_array[walls] = False
-
-    array_of_colors[pattern_array] = yellow
-    array_of_colors[init_state] = blue
-    array_of_colors[walls] = black
-    reward_matrix = world == reward
-    array_of_colors[reward_matrix] = red
-
-    _, ax = plt.subplots(1, 1, dpi=100)
-    # adding colors
-    ax.imshow(array_of_colors, aspect='equal')
-    if len(labels) == 0 and len(arrows) == 0:
-        for i in range(world.shape[0]):
-            for j in range(world.shape[1]):
-                if reward_matrix[j, i]:
-                    ax.text(i, j, "R", va='center', ha='center')
-                if init_state[j, i]:
-                    ax.text(i, j, "I", va='center', ha='center')
-
-    if len(arrows) != 0:
-        for i in range(arrows.shape[0]):
-            for j in range(arrows.shape[1]):
-                if walls[i, j] ==0:
-                    action = arrows[i, j]
-                    if len(uncertain) > 0 and pattern_array[i, j]:
-                        action = uncertain[i, j]
-                    if action == 4:  # Draw a circle
-                        circle = plt.Circle((j, i), 0.1,
-                                            color='black', fill=True)
-                        ax.add_patch(circle)
-                    elif action == 0:  # Up arrow (↑)
-                        ax.arrow(j, i+0.1, 0, -0.1, head_width=0.1,
-                                 head_length=0.1, fc='black', ec='black')
-                    elif action == 1:  # Down arrow (↓)
-                        ax.arrow(j, i-0.1, 0, 0.1, head_width=0.1,
-                                 head_length=0.1, fc='black', ec='black')
-                    elif action == 2:  # Left arrow (←)
-                        ax.arrow(j, i, -0.1, 0, head_width=0.1,
-                                 head_length=0.1, fc='black', ec='black')
-                    elif action == 3:  # Right arrow (→)
-                        ax.arrow(j, i, 0.1, 0, head_width=0.1,
-                                 head_length=0.1, fc='black', ec='black')
-                    
-                    if blue_circle :
-                        circle = plt.Circle((j-0.4, i-0.4), 0.05,
-                                            color='blue', fill=True)
-                        ax.add_patch(circle)
-
-    # adding labels
-    for i in range(0, labels.shape[0]):
-        for j in range(0, labels.shape[1]):
-            c = labels[j, i]
-            ax.text(i, j, str(c), va='center', ha='center')
-    major_ticks = np.arange(-0.5, size[0] + 0.5)
-    ax.set_xticks(major_ticks)
-    ax.set_yticks(major_ticks)
-    ax.grid(True, alpha=1, color='black', linewidth=1)
-    for tick in ax.xaxis.get_major_ticks():
-        tick.tick1line.set_visible(False)
-        tick.tick2line.set_visible(False)
-        tick.label1.set_visible(False)
-        tick.label2.set_visible(False)
-    for tick in ax.yaxis.get_major_ticks():
-        tick.tick1line.set_visible(False)
-        tick.tick2line.set_visible(False)
-        tick.label1.set_visible(False)
-        tick.label2.set_visible(False)
-    plt.tight_layout()
-    plt.savefig(path)
+def plot_boxplot_time(results,
+                      save_path,
+                      metric_name='time (ms)'):
+    metric_per_seed = (
+    results
+    .groupby(["agent", "seed"], as_index=False, sort=False)[metric_name]
+    .sum()
+    )
+    groups = [g[metric_name].values for _, g in metric_per_seed.groupby("agent")]
+    names = results["agent"].unique()
+    plt.figure(figsize=(max(8, len(names)*1.8), 6))
+    clean_names = [labels[name] for name in names]
+    plt.boxplot(groups, labels=clean_names, showfliers=False)
+    plt.xticks(range(1, len(names) + 1), clean_names, fontsize=16-len(names))
+    plt.ylabel('Time (ms)')
+    plt.savefig(os.path.join(save_path, 'Total_times.pdf'))
     plt.close()
 
+# def plot_avg_over_time(dic_of_values,
+#                        nb_steps,
+#                        nb_trials,
+#                        change_rate,
+#                        nb_iters,
+#                        title='',
+#                        xlabel='Number of task changes',
+#                        ylabel='Rewards',
+#                        legend=True,
+#                        ax=None,
+#                        save=True,
+#                        multiply=False,
+#                        grid=False):
+#     if ax is None:
+#         fig, ax = plt.subplots()
+#     all_means = {}
+#     if change_rate % nb_steps != 0:
+#         print("Cannot plot, change_rate % nb_steps != 0.""")
+#         return None
+#     trials_each_change = int(change_rate//nb_steps)
+#     nb_values = nb_iters*trials_each_change
+#     nb_changes = nb_trials//trials_each_change
+#     nb_values = nb_iters
+#     for agent in dic_of_values.keys():
+#         all_means[agent] = np.zeros((nb_iters, nb_changes))
+#         values = np.array(dic_of_values[agent])
+#         for i in range(nb_changes):
+#             starting_i = i*trials_each_change
+#             r_change = values[:, starting_i:starting_i+trials_each_change]
+#             if multiply:
+#                 r_change *= 1e3/nb_steps
+#             mean = np.mean(r_change, axis=1)
+#             all_means[agent][:, i] = mean
 
-def plot_one_transition(world_number,
-                        col,
-                        row,
-                        action,
-                        cond=''):
-    str_world = str(world_number)
-    str_cell = str(col)+str(row)
-    str_action = str(action)
-    world = np.load('Env/Tables/World_'+str_world+'.npy')
-    transitions = np.load('Env/Transitions/Transitions_'+str_world+cond+'.npy')
-    transi_action = transitions[row][col][action]
-    tmp_path = '_action_'+str_action+'_cond'+cond+'.pdf'
-    path_save = 'Env/world_'+str_world+'_cell_'+str_cell+tmp_path
+#         array_mean = all_means[agent]
+#         array_std = np.std(array_mean, axis=0)
+#         array_mean = np.mean(array_mean, axis=0)
+#         array_CI = 1.96*array_std / np.sqrt(nb_values)
+#         x_axis = np.arange(0, nb_changes)
+#         ax.plot(x_axis,
+#                 array_mean,
+#                 label=labels[agent],
+#                 color=all_colors[colors[agent]],
+#                 marker=markers[agent],
+#                 markersize=4)
+#         ax.fill_between(x_axis,
+#                         array_mean-array_CI,
+#                         array_mean+array_CI,
+#                         color=all_colors[colors[agent]],
+#                         alpha=0.15)
 
-    walls = world == -1
-    numbers = [0, 1, -1]
-    pairs = [(x, y) for x in numbers for y in numbers]
-    nine_walls = np.zeros((3, 3))
-    nine_probas = np.zeros((3, 3))
-    max_col = len(transitions)
-    max_row = len(transitions[0])
-    for (x, y) in pairs:
-        new_row = row+x
-        new_col = col+y
-        cond_x = new_row >= max_row or new_row < 0
-        cond_y = new_col >= max_col or new_col < 0
-        if cond_x or cond_y:
-            nine_walls[x+1, y+1] = 1
-        else:
-            nine_walls[x+1, y+1] = walls[new_row, new_col]
-        if nine_walls[x+1, y+1] != 1:
-            nine_probas[x+1, y+1] = transi_action[new_row, new_col]
-
-    fig, ax = plt.subplots(figsize=(5, 5))
-
-    # Loop through all cells and fill them accordingly
-    for i in range(nine_probas.shape[0]):
-        for j in range(nine_probas.shape[1]):
-            color = 'black' if nine_walls[i, j] == 1 else 'white'
-            ax.add_patch(plt.Rectangle((j, i), 1, 1, color=color))
-            # Add text only in white cells
-            if nine_walls[i, j] == 0:
-                percent = round(nine_probas[i, j] * 100, 1)
-                if percent > 0:  # Only display if greater than 0
-                    ax.text(j + 0.5, i + 0.5, f"{percent}%",
-                            ha='center', va='center', color='black')
-
-    if action == 4:  # Draw a circle
-        circle = plt.Circle((1.5, 1.7), 0.1, color='blue', fill=True)
-        ax.add_patch(circle)
-    elif action == 0:  # Up arrow (↑)
-        ax.arrow(1.5, 1.3, 0, -0.1, head_width=0.1,
-                 head_length=0.1, fc='blue', ec='blue')
-    elif action == 1:  # Down arrow (↓)
-        ax.arrow(1.5, 1.7, 0, 0.1, head_width=0.1,
-                 head_length=0.1, fc='blue', ec='blue')
-    elif action == 2:  # Left arrow (←)
-        ax.arrow(1.6, 1.3, -0.1, 0, head_width=0.1,
-                 head_length=0.1, fc='blue', ec='blue')
-    elif action == 3:  # Right arrow (→)
-        ax.arrow(1.4, 1.3, 0.1, 0, head_width=0.1,
-                 head_length=0.1, fc='blue', ec='blue')
-
-    # Set limits and aspect
-    ax.set_xlim(0, nine_probas.shape[1])
-    ax.set_ylim(nine_probas.shape[0], 0)
-    ax.set_xticks(np.arange(nine_probas.shape[1] + 1))
-    ax.set_yticks(np.arange(nine_probas.shape[0] + 1))
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
-    ax.grid(True, color="black", linewidth=1.5)
-    ax.tick_params(which="both", bottom=False, left=False)
-    plt.tight_layout()
-    plt.savefig(path_save)
-    plt.close()
+#     ax.set_ylabel(ylabel, fontweight='bold')
+#     ax.set_xlabel(xlabel, fontweight='bold')
+#     # ax.yaxis.get_major_locator().set_params(integer=True)
+#     ax.xaxis.get_major_locator().set_params(integer=True)
+#     if legend:
+#         ax.legend(loc='lower center')
+#     if title == '':
+#         title = str(time.time())
+#     if grid:
+#         ax.grid(alpha=0.2)
+#     if save:
+#         plt.savefig('results/'+title+'.pdf')
+#         plt.close()
 
 
-def plot_number_models_cross_env(cross_env_number,
-                                 models,
-                                 title='',
-                                 title_fig=''):
-    if title == '':
-        title = str(time.time())
-    world_array = np.load('Env/Tables/World_'+str(cross_env_number)+'.npy')
-    shape_env = np.shape(world_array)
-    models = np.reshape(models, shape_env)
-    path = 'results/'+title_fig+title+'.pdf'
-    plot_maze(world_array, path, models)
+# def plot_avg_after_change(dic_of_values,
+#                           nb_steps,
+#                           nb_trials,
+#                           change_rate,
+#                           nb_iters,
+#                           title='',
+#                           xlabel="Number of steps after the task change",
+#                           ylabel='Rewards',
+#                           legend=True,
+#                           ax=None,
+#                           save=True,
+#                           multiply=False):
+#     if ax is None:
+#         fig, ax = plt.subplots()
+#     all_means = {}
+#     trials_each_change = int(change_rate//nb_steps)
+#     nb_values = nb_iters
+#     for agent in dic_of_values.keys():
+#         all_means[agent] = np.zeros((nb_iters, trials_each_change))
+#         values = np.array(dic_of_values[agent])
+#         not_used = nb_trials % trials_each_change
+#         for j in range(trials_each_change):
+#             filter_indices = np.array([i+j for i in range(0,
+#                                                           nb_trials-not_used,
+#                                                           trials_each_change)])
+
+#             r_change = np.take(values, filter_indices, 1)
+#             if multiply:
+#                 r_change *= 1e3/nb_steps
+#             mean = np.mean(r_change, axis=1)
+#             all_means[agent][:, j] = mean
+
+#         array_mean = all_means[agent]
+#         array_std = np.std(array_mean, axis=0)
+#         array_mean = np.mean(array_mean, axis=0)
+
+#         array_CI = 1.96*array_std / np.sqrt(nb_values)
+#         x_axis = np.arange(1, trials_each_change+1)
+#         ax.plot(x_axis,
+#                 array_mean,
+#                 label=labels[agent],
+#                 color=all_colors[colors[agent]],
+#                 marker=markers[agent],
+#                 markersize=4)
+#         ax.fill_between(x_axis,
+#                         array_mean-array_CI,
+#                         array_mean+array_CI,
+#                         color=all_colors[colors[agent]],
+#                         alpha=0.15)
+
+#     ax.set_ylabel(ylabel, fontweight='bold')
+#     ax.set_xlabel(xlabel, fontweight='bold')
+#     # ax.yaxis.get_major_locator().set_params(integer=True)
+#     ax.xaxis.get_major_locator().set_params(integer=True)
+#     if legend:
+#         ax.legend(loc='lower center')
+#     if title == '':
+#         title = str(time.time())
+#     if save:
+#         plt.savefig('results/'+title+'.pdf')
+#         plt.close()

@@ -1,0 +1,200 @@
+from variables import envs, agents
+from multiprocessing import Pool
+from consts import multi_model_agents, one_step_environments
+from consts import mM_and_RLCD
+import numpy as np
+import time
+
+def play(environment,
+         agent,
+         trials=100,
+         max_step=30):
+
+    name_agent = agent.__class__.__name__
+    name_env = environment.__class__.__name__
+    is_multi_model = name_agent in multi_model_agents
+    is_mm_or_RLCD = name_agent in mM_and_RLCD
+    log = {}
+
+    if is_multi_model:
+        log = {**log,
+               'nb_model': [],
+               'nb_creation': [],
+               'nb_forgetting': [],
+               'nb_merging': []}
+    log['distance_current_model'] = []
+
+    start_time = time.time()
+    reward_per_episode = []
+    time_per_episode = []
+    trial_changes = []
+    init_change = 0
+
+    if  name_env in one_step_environments:
+        env_is_one_step = True
+        best_action = []
+    else :
+        env_is_one_step = False
+
+    for _ in range(trials):
+        cumulative_reward, step, game_over, time_trial = 0, 0, False, 0
+
+        mod_agent = agent.tSAS
+        mod_env = environment.transitions
+        distance = compute_current_distance_transition(mod_env, mod_agent)
+        log["distance_current_model"].append(distance)
+        
+        time_init_trial = time.time()
+        while not game_over:
+            old_state = environment.agent_state
+            action = agent.choose_action(old_state)
+            reward, new_state = environment.make_step(action)
+            agent.learn(old_state, reward, new_state, action)
+            cumulative_reward += reward
+            #time_trial = time.time()-time_init_trial
+
+            step += 1
+            if step == max_step:
+                game_over = True
+            
+            if env_is_one_step:
+                best_action.append(action == environment.best_action)
+
+        time_trial = time.time()-time_init_trial
+        time_per_episode.append(time_trial)
+        environment.new_episode()
+        reward_per_episode.append(cumulative_reward)
+        if is_multi_model:
+            log['nb_model'].append(agent.total_nb_models)
+            log['nb_creation'].append(agent.total_creation)
+            log['nb_forgetting'].append(agent.total_forgetting)
+            log['nb_merging'].append(agent.total_merging)
+        if is_mm_or_RLCD :
+            trial_changes.append(agent.nb_changes-init_change)
+            init_change = agent.nb_changes
+
+    end_time = time.time()
+    log['reward'] = reward_per_episode
+    log['total_time'] = end_time-start_time
+    log['times'] = time_per_episode
+    if env_is_one_step:
+        log['best_action']=best_action
+    if is_multi_model:
+        log['creation_per_state'] = agent.creation_per_state
+        log['model_per_state'] = agent.model_per_state
+    if is_mm_or_RLCD :
+        log['all_changes'] = trial_changes
+    return log
+
+
+def compute_current_distance_transition(transi_env, transi_agent):
+    return np.sqrt(np.sum((transi_env - transi_agent) ** 2))
+
+def get_simulation_to_do(agent_to_test,
+                         env_name,
+                         nb_tests,
+                         play_parameters,
+                         starting_seed,
+                         env_parameters,
+                         agent_parameters):
+    simulation_to_do = []
+    seed = starting_seed
+    for agent_name in agent_to_test:
+        count = 0
+        for _ in range(nb_tests):
+            for param_env in env_parameters:
+                trial_name = (env_name, agent_name, count)
+                simulation_to_do.append({'trial_name': trial_name,
+                                        'env_name': env_name,
+                                         'agent_name': agent_name,
+                                         'seed': seed,
+                                         'play_parameters': play_parameters,
+                                         'env_param': param_env,
+                                         'agent_param': agent_parameters[agent_name]})
+                count += 1
+                seed += 1
+    return simulation_to_do
+
+
+def one_parameter_play_function(all_params_one_trial):
+
+    seed = all_params_one_trial['seed']
+    play_parameters = all_params_one_trial['play_parameters']
+    env_name = all_params_one_trial['env_name']
+    agent_name = all_params_one_trial['agent_name']
+    trial_name = all_params_one_trial['trial_name']
+    env_parameter = all_params_one_trial['env_param']
+    agent_parameter = all_params_one_trial['agent_param']
+    np.random.seed(seed)
+
+    environment = envs[env_name](**env_parameter)
+    agent = agents[agent_name](environment, **agent_parameter)
+    return trial_name, play(environment, agent, **play_parameters)
+
+
+def sum_up_all_parameters(agents,
+                          env_name,
+                          nb_iters,
+                          play_params,
+                          starting_seed,
+                          env_param,
+                          agent_param):
+
+    parameters = {**play_params,
+                  'env_name': env_name,
+                  'agents': agents,
+                  'nb_iters': nb_iters,
+                  'starting_seed': starting_seed,
+                  'env_param': env_param,
+                  'agent_param': agent_param
+                  }
+    return parameters
+
+
+def main_function(agent_to_test,
+                  env_to_test,
+                  nb_tests,
+                  play_parameters,
+                  starting_seed,
+                  env_parameters,
+                  agent_parameters,
+                  nb_processes=5,
+                  save=False):
+
+    time_before = time.time()
+    every_simulation = get_simulation_to_do(agent_to_test,
+                                            env_to_test,
+                                            nb_tests,
+                                            play_parameters,
+                                            starting_seed,
+                                            env_parameters,
+                                            agent_parameters)
+    logs = {}
+    if nb_processes > 1 : 
+        pool = Pool(processes=nb_processes)
+        results = pool.map(one_parameter_play_function, every_simulation)
+        pool.close()
+        pool.join()
+        for result in results:
+            logs[result[0]] = result[1]
+    else : 
+        for simulation in every_simulation:
+            trial_name, result = one_parameter_play_function(simulation)
+            logs[trial_name] = result
+    time_after = time.time()
+    print('Computation time: '+str(time_after - time_before))
+    title = str(time_before)
+    if save : np.save('results/logs'+title+' .npy', logs)
+
+    parameters = {**play_parameters,
+                  'env_name': env_to_test,
+                  'agents': agent_to_test,
+                  'nb_iters': nb_tests,
+                  'starting_seed': starting_seed,
+                  'env_param': env_parameters,
+                  'agent_param': agent_parameters,
+                  'time': title
+                  }
+
+    if save : np.save('results/parameters'+title+'.npy', parameters)
+    return logs, parameters

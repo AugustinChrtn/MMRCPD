@@ -1,5 +1,5 @@
-from play_function2 import main_function
-from plots_new import get_all_plot, get_plot_from_saved
+from play_function import main_function
+from plots import get_plot_from_saved
 
 
 def set_param_agent(params_shared={},
