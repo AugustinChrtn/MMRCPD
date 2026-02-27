@@ -25,4 +25,4 @@ Then, install the required libraries indicated in the `requirements.txt` or `req
 
 After these two steps, you can:
 * Launch `main.py` to get the figures and the data from the article. You can indicate in the `main.py` file which experiment you would like to launch.
-* The results file contains all the data used to generate the plots from the article. Feel free to generate new plots with this data.
+* Generate new plots with the data contained in the **results** folder
