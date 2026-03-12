@@ -1,7 +1,6 @@
 from variables import envs, agents
 from multiprocessing import Pool
 from consts import multi_model_agents, one_step_environments
-from consts import mM_and_RLCD
 import numpy as np
 import time
 import pandas as pd
